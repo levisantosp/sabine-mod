@@ -18,6 +18,6 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
-            cd sabine/sabine
+            cd sabine/sabine-mod
             git pull origin main
             docker compose up -d --build
