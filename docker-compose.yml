@@ -1,0 +1,10 @@
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: dockerfile
+    image: sabine-mod
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
