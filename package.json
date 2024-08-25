@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "@iamtraction/google-translate": "^2.0.1",
+    "enhanced-ms": "^3.0.0",
+    "mongoose": "^8.5.3",
+    "oceanic.js": "^1.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.3.0",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
+  },
+  "name": "sabine-mod",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx test",
+    "start": "rm -rf dist && tsc && node dist/index.js",
+    "dev": "tsx .",
+    "build": "rm -rf dist && tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
