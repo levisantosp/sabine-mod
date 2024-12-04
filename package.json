@@ -3,7 +3,7 @@
     "@iamtraction/google-translate": "^2.0.1",
     "enhanced-ms": "^3.0.0",
     "mongoose": "^8.5.3",
-    "oceanic.js": "^1.11.1"
+    "oceanic.js": "^1.11.2"
   },
   "devDependencies": {
     "@types/node": "^22.3.0",
