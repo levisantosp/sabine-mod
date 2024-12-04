@@ -1,6 +1,7 @@
 import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteraction, PrivateThreadChannel, TextChannel } from "oceanic.js"
 import { createListener } from "../structures"
 import { Guild, GuildSchemaInterface, Key, KeySchemaInterface } from "../database"
+import transcript from "oceanic-transcripts"
 
 export default createListener({
   name: "interactionCreate",
@@ -12,7 +13,7 @@ export default createListener({
         await interaction.defer(64);
         const category = interaction.guild.channels.get("1277285123070361673") as CategoryChannel;
         if(category.channels.some(ch => ch.name.includes(interaction.user.id))) {
-          interaction.createFollowup({ content: "Você já tem um ticket criado. Espere um moderador deletar ou delete você mesmo." });
+          interaction.createFollowup({ content: "Você já tem um ticket criado. Espere até que um moderador delete o ticket." });
           return;
         }
         const channel = await interaction.guild.createChannel(
@@ -40,7 +41,7 @@ export default createListener({
           }
         );
         const msg = await channel.createMessage({
-          content: `${interaction.user.mention} Ticket criado com sucesso! Alguém virá falar com você em breve.\n- Enquanto ninguém aparece, fala com o que você precisa de ajuda\n- Não mencione ninguém, apenas aguarde.`,
+          content: `${interaction.user.mention} Ticket criado com sucesso! Alguém virá falar com você em breve.\n- Enquanto ninguém aparece, fale com o que você precisa de ajuda.\n- Não mencione ninguém, apenas aguarde.`,
           components: [
             {
               type: 1,
@@ -61,10 +62,24 @@ export default createListener({
         await interaction.createFollowup({ content: `Ticket criado com sucesso!\n${msg.jumpLink}` });
       }
       else if(interaction.data.customID === "close-ticket") {
+        if(!["1237458600046104617", "1237458505196114052", "1237457762502574130"].some(r => interaction.member!.roles.includes(r))) return;
         await interaction.deferUpdate(64);
         await (interaction.channel as TextChannel).createMessage({ content: `Fechando ticket <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-        setTimeout(() => {
-          interaction.channel!.delete();
+        const attach = await transcript.createTranscript(interaction.channel as TextChannel, {
+          poweredBy: false,
+          saveImages: true,
+          hydrate: true,
+          filename: `transcript-${(interaction.channel as TextChannel).name.replace("ticket_", "")}.html`
+        });
+        setTimeout(async() => {
+          await interaction.channel!.delete();
+          client.rest.channels.createMessage("1313845851998781562", {
+            content: `Ticket requisitado por: <@${(interaction.channel as TextChannel).name.replace("ticket_", "")}>`,
+            allowedMentions: {
+              users: false
+            },
+            files: [attach]
+          })
         }, 10000)
       }
       else if(args[0] === "key") {
