@@ -130,7 +130,7 @@ export interface BlacklistSchemaInterface extends mongoose.Document {
 export interface KeySchemaInterface extends mongoose.Document {
   _id: string;
   expiresAt?: number;
-  type: "BOOSTER" | "BASIC" | "PLUS" | "ULTRA"
+  type: "BOOSTER" | "LITE" | "PRO" | "ULTIMATE"
   user: string;
   active: boolean;
   activeIn: string[];

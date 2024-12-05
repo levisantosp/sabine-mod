@@ -6,6 +6,8 @@ declare global {
       PREFIX: string;
       MOD_LOG: string;
       SABINE_TOKEN: string;
+      MP_TOKEN: string;
+      WEBHOOK_URL: string;
     }
   }
 }

@@ -1,7 +1,9 @@
-import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteraction, PrivateThreadChannel, TextChannel } from "oceanic.js"
-import { createListener } from "../structures"
+import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteraction, PrivateThreadChannel, TextChannel, User } from "oceanic.js"
+import { ButtonBuilder, createListener, EmbedBuilder } from "../structures"
 import { Guild, GuildSchemaInterface, Key, KeySchemaInterface } from "../database"
 import transcript from "oceanic-transcripts"
+import MercadoPago, { Preference } from "mercadopago"
+const mpClient = new MercadoPago({ accessToken: process.env.MP_TOKEN });
 
 export default createListener({
   name: "interactionCreate",
@@ -80,7 +82,7 @@ export default createListener({
             },
             files: [attach]
           })
-        }, 10000)
+        }, 10000);
       }
       else if(args[0] === "key") {
         await interaction.createModal({
@@ -104,6 +106,86 @@ export default createListener({
             }
           ]
         });
+      }
+      else if(args[0] === "premium" && interaction) {
+        if(!interaction.guild || !interaction.guildID || !interaction.channel || !interaction.member) return;
+        switch((interaction as ComponentInteraction<Constants.SelectMenuTypes>).data.values.raw[0]) {
+          case "premium_booster": {
+            if(interaction.member.premiumSince) {
+              interaction.createMessage({
+                content: `Você já é um Premium Booster!\nCaso queira gerar e/ou ativar sua chave, siga o passo a passo:\n- Usar o comando \`${process.env.PREFIX}gerarchave\` em https://canary.discord.com/channels/1233965003850125433/1313588710637568030\n- Usar \`${process.env.PREFIX}ativarchave <servidor>\` no mesmo canal\n - Seguir o passo a passo no tópico que será criado`,
+                flags: 64
+              });
+              break;
+            }
+            interaction.createMessage({
+              content: `Para conseguir o Premium Booster, você precisa seguir os seguintes passos:\n- Impulsionar o servidor\n- Usar o comando \`${process.env.PREFIX}gerarchave\` em https://canary.discord.com/channels/1233965003850125433/1313588710637568030 (o canal só libera depois que você impulsiona o servidor)\n- Usar \`${process.env.PREFIX}ativarchave <servidor>\` no mesmo canal\n - Seguir o passo a passo no tópico que será criado`,
+              flags: 64
+            });
+          }
+          break;
+          case "premium_lite": {
+            interaction.createMessage({
+              content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
+              flags: 64
+            });
+            const thread = await (interaction.channel as TextChannel)
+            .startThreadWithoutMessage({
+              name: "PREMIUM_LITE_" + interaction.user.id,
+              type: 12,
+              invitable: false
+            });
+            const preference = new Preference(mpClient);
+            const res = await preference.create(
+              {
+                body: {
+                  items: [
+                    {
+                      title: "PREMIUM LITE - SABINE PAYMENTS",
+                      quantity: 1,
+                      currency_id: "BRL",
+                      unit_price: 2.99,
+                      id: "PREMIUM_LITE"
+                    }
+                  ],
+                  notification_url: process.env.WEBHOOK_URL,
+                  external_reference: `${thread.id};${interaction.user.id};PREMIUM_LITE`,
+                  date_of_expiration: new Date(Date.now() + 600000).toISOString()
+                }
+              }
+            );
+            if(!res.init_point) {
+              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+              setTimeout(() => thread.delete(), 10000);
+              return;
+            }
+            await thread.addMember(interaction.user.id);
+            const embed = new EmbedBuilder()
+            .setTitle("Plano Premium Lite")
+            .setDesc(`Clique no botão abaixo para ser redirecionado para a página de pagamento do Mercado Pago <:mercadopago:1313901326744293427>\nRealize o pagamento <t:${((Date.now() + 600000) / 1000).toFixed(0)}:R>, caso contrário, o link expirará.`);
+            const button = new ButtonBuilder()
+            .setStyle("link")
+            .setLabel("Link de pagamento")
+            .setURL(res.init_point)
+            await thread.createMessage(embed.build({
+              components: [
+                {
+                  type: 1,
+                  components: [button]
+                }
+              ]
+            }));
+            await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` });
+          }
+          break;
+          case "premium_pro": {
+
+          }
+          break;
+          case "premium_ultimate": {
+
+          }
+        }
       }
     }
     else if(interaction instanceof ModalSubmitInteraction) {

@@ -1,20 +1,8 @@
-import "dotenv/config"
-import { App } from "./structures"
-// import "./http"
 import { FastifyPluginAsyncTypebox, Type } from "@fastify/type-provider-typebox"
 import fastify from "fastify"
-import { EmbedBuilder } from "./structures"
-import { Key, KeySchemaInterface } from "./database"
-import { TextChannel } from "oceanic.js"
+import { EmbedBuilder } from "../structures"
+import { Key, KeySchemaInterface } from "../database"
 
-const client = new App({
-  auth: "Bot " + process.env.BOT_TOKEN,
-  gateway: {
-    intents: ["ALL"],
-    autoReconnect: true
-  }
-});
-client.start();
 const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
   fastify.post("/webhook", {
     schema: {
@@ -71,12 +59,31 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
         //     activeIn: []
         //   }
         // ).save();
-        const embed = new EmbedBuilder()
-        .setTitle("Pagamento aprovado")
-        .setDesc(`Sua compra de **${details.total_paid_amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}** foi aprovada e você já pode aproveitar seus benefícios!\n\nSua chave de ativação é \`${keyId}\`\nNão compartilhe com NINGUÉM!`)
-        .setFooter({ text: "O tópico será deletado automaticamente após 20 minutos de inatividade" });
-        const channel = client.getChannel(args[0]) as TextChannel;
-        if(channel) channel.createMessage(embed.build());
+        // const embed = new EmbedBuilder()
+        // .setTitle("Pagamento aprovado")
+        // .setDesc(`Sua compra de **${details.total_paid_amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}** foi aprovada e você já pode aproveitar seus benefícios!\n\nSua chave de ativação é \`${keyId}\`\nNão compartilhe com NINGUÉM!`)
+        // .setFooter({ text: "O tópico será deletado automaticamente após 20 minutos de inatividade" });
+        await fetch(
+          `https://discord.com/api/v10/channels/${args[0]}/messages`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bot " + process.env.BOT_TOKEN,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              embeds: [
+                {
+                  title: "Pagamento aprovado",
+                  description: `Sua compra de **${details.total_paid_amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}** foi aprovada e você já pode aproveitar seus benefícios!\n\nSua chave de ativação é \`${keyId}\`\nNão compartilhe com NINGUÉM!`,
+                  footer: {
+                    text: "O tópico será deletado automaticamente após 20 minutos de inatividade"
+                  }
+                }
+              ]
+            })
+          }
+        );
       }
     }
   });

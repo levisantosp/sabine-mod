@@ -1,4 +1,6 @@
 import ButtonBuilder from "./builders/ButtonBuilder"
+import EmbedBuilder from "./builders/EmbedBuilder"
+import SelectMenuBuilder from "./builders/SelectMenuBuilder"
 import App from "./client/App"
 import createListener from "./client/createListener"
 import CommandContext from "./command/CommandContext"
@@ -9,5 +11,7 @@ export {
   createListener,
   createCommand,
   CommandContext,
-  ButtonBuilder
+  ButtonBuilder,
+  SelectMenuBuilder,
+  EmbedBuilder
 }

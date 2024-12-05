@@ -17,8 +17,8 @@ export default class App extends Client {
     await this.connect();
     for(const file of readdirSync(path.join(__dirname, "../../listeners"))) {
       const listener = (await import(`../../listeners/${file}`)).default.default ?? (await import(`../../listeners/${file}`)).default;
-      if(listener.name === "ready") this.once("ready", () => listener.run(this).catch((e: Error) => console.error(e)));
-      else this.on(listener.name, (...args) => listener.run(this, ...args).catch((e: Error) => console.error(e)));
+      if(listener.name === "ready") this.once("ready", () => listener.run(this).catch(console.error));
+      else this.on(listener.name, (...args) => listener.run(this, ...args).catch(console.error));
     }
     for(const file of readdirSync(path.join(__dirname, "../../commands"))) {
       const command = (await import(`../../commands/${file}`)).default.default ?? (await import(`../../commands/${file}`)).default;
