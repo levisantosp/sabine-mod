@@ -20,6 +20,7 @@ export type Command = {
   onlyMod?: boolean;
   onlyBooster?: boolean;
   onlyPremium?: boolean;
+  onlyBoosterAndPremium?: boolean;
   run: (options: CommandOptions) => Promise<void>;
   createInteraction?: (options: CreateComponentInteractionOptions) => Promise<void>;
 }

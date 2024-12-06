@@ -34,25 +34,27 @@ export default createCommand({
     .setTitle("SEJA PREMIUM")
     .setDesc("Use este painel para adquirir um de nossos planos e ganhar vantagens exclusivas para o seu servidor!")
     .setFields(
-      [
-        {
-          name: "Premium Booster",
-          value: "- 1x Key Booster\n  - Pode adicionar até 10 campeonatos\n  - Dura enquanto o impulso estiver ativo"
-        },
-        {
-          name: "Premium Lite",
-          value: "- 1x Key Lite\n  - Pode adicionar até 15 campeonatos\n  - Funcionalidade de notícias liberada"
-        },
-        {
-          name: "Premium Pro",
-          value: "- 2x Key Pro\n  - Pode ser ativada em até 2 servidores diferentes\n  - Pode adicionar até 20 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
-        },
-        {
-          name: "Premium Ultimate",
-          value: "- 3x Key Ultimate\n  - Pode ser ativada em até 3 servidores diferentes\n  - Pode adicionar até 25 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
-        }
-      ]
-    )
+      {
+        name: "Premium Booster",
+        value: "- 1x Key Booster\n  - Pode adicionar até 10 campeonatos\n  - Dura enquanto o impulso estiver ativo"
+      },
+      {
+        name: "Premium Lite",
+        value: "- 1x Key Lite\n  - Pode adicionar até 15 campeonatos\n  - Funcionalidade de notícias liberada"
+      },
+      {
+        name: "Premium Pro",
+        value: "- 2x Key Pro\n  - Pode ser ativada em até 2 servidores diferentes\n  - Pode adicionar até 20 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
+      },
+      {
+        name: "Premium Ultimate",
+        value: "- 3x Key Ultimate\n  - Pode ser ativada em até 3 servidores diferentes\n  - Pode adicionar até 25 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
+      },
+      {
+        name: "Métodos de pagamento",
+        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:pix:1314231636883406939> Pix"
+      }
+    );
     ctx.send(menu.build(embed.build()));
   }
 });

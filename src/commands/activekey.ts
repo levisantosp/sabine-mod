@@ -4,19 +4,19 @@ import { ButtonBuilder, createCommand } from "../structures"
 
 export default createCommand({
   name: "ativarchave",
-  onlyBooster: true,
+  onlyBoosterAndPremium: true,
   async run({ ctx }) {
     if(ctx.message.channel.id !== "1313588710637568030") return;
     if(!ctx.args[0]) {
       ctx.send("Informe o ID de um servidor");
       return;
     }
-    const key = (await Key.find(
+    const keys = (await Key.find(
       {
         user: ctx.message.author.id
       }
-    ))[0] as KeySchemaInterface;
-    if(!key) {
+    )) as KeySchemaInterface[];
+    if(!keys.length) {
       ctx.send("Você não possui nenhuma chave para ativar");
       return;
     }
@@ -48,6 +48,6 @@ export default createCommand({
     .setLabel("Ativar")
     .setStyle("red")
     .setCustomId(`key;${ctx.args[0]}`);
-    thread.createMessage(button.build(`Você está prestes a ativar sua chave **${key.type}** em \`${guild.name}\`. Deseja prosseguir?`));
+    thread.createMessage(button.build(`Você está prestes a ativar uma chave em \`${guild.name}\`. Deseja prosseguir?`));
   }
 });

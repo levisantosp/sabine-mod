@@ -1,8 +1,8 @@
 import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteraction, PrivateThreadChannel, TextChannel, User } from "oceanic.js"
-import { ButtonBuilder, createListener, EmbedBuilder } from "../structures"
+import { ButtonBuilder, createListener, EmbedBuilder, Logger } from "../structures"
 import { Guild, GuildSchemaInterface, Key, KeySchemaInterface } from "../database"
 import transcript from "oceanic-transcripts"
-import MercadoPago, { Preference } from "mercadopago"
+import MercadoPago, { Payment, Preference } from "mercadopago"
 const mpClient = new MercadoPago({ accessToken: process.env.MP_TOKEN });
 
 export default createListener({
@@ -125,13 +125,13 @@ export default createListener({
           }
           break;
           case "premium_lite": {
-            interaction.createMessage({
+            await interaction.createMessage({
               content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
               flags: 64
             });
             const thread = await (interaction.channel as TextChannel)
             .startThreadWithoutMessage({
-              name: "PREMIUM_LITE_" + interaction.user.id,
+              name: `Premium Lite (${interaction.user.id})`,
               type: 12,
               invitable: false
             });
@@ -179,11 +179,111 @@ export default createListener({
           }
           break;
           case "premium_pro": {
-
+            await interaction.createMessage({
+              content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
+              flags: 64
+            });
+            const thread = await (interaction.channel as TextChannel)
+            .startThreadWithoutMessage({
+              name: `Premium Pro (${interaction.user.id})`,
+              type: 12,
+              invitable: false
+            });
+            const preference = new Preference(mpClient);
+            const res = await preference.create(
+              {
+                body: {
+                  items: [
+                    {
+                      title: "PREMIUM PRO - SABINE PAYMENTS",
+                      quantity: 1,
+                      currency_id: "BRL",
+                      unit_price: 5.99,
+                      id: "PREMIUM_PRO"
+                    }
+                  ],
+                  notification_url: process.env.WEBHOOK_URL,
+                  external_reference: `${thread.id};${interaction.user.id};PREMIUM_PRO`,
+                  date_of_expiration: new Date(Date.now() + 600000).toISOString()
+                }
+              }
+            );
+            if(!res.init_point) {
+              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+              setTimeout(() => thread.delete(), 10000);
+              return;
+            }
+            await thread.addMember(interaction.user.id);
+            const embed = new EmbedBuilder()
+            .setTitle("Plano Premium Pro")
+            .setDesc(`Clique no botão abaixo para ser redirecionado para a página de pagamento do Mercado Pago <:mercadopago:1313901326744293427>\nRealize o pagamento <t:${((Date.now() + 600000) / 1000).toFixed(0)}:R>, caso contrário, o link expirará.`);
+            const button = new ButtonBuilder()
+            .setStyle("link")
+            .setLabel("Link de pagamento")
+            .setURL(res.init_point)
+            await thread.createMessage(embed.build({
+              components: [
+                {
+                  type: 1,
+                  components: [button]
+                }
+              ]
+            }));
+            await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` });
           }
           break;
           case "premium_ultimate": {
-
+            await interaction.createMessage({
+              content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
+              flags: 64
+            });
+            const thread = await (interaction.channel as TextChannel)
+            .startThreadWithoutMessage({
+              name: `Premium Ultimate (${interaction.user.id})`,
+              type: 12,
+              invitable: false
+            });
+            const preference = new Preference(mpClient);
+            const res = await preference.create(
+              {
+                body: {
+                  items: [
+                    {
+                      title: "PREMIUM ULTIMATE - SABINE PAYMENTS",
+                      quantity: 1,
+                      currency_id: "BRL",
+                      unit_price: 9.99,
+                      id: "PREMIUM_ULTIMATE"
+                    }
+                  ],
+                  notification_url: process.env.WEBHOOK_URL,
+                  external_reference: `${thread.id};${interaction.user.id};PREMIUM_ULTIMATE`,
+                  date_of_expiration: new Date(Date.now() + 600000).toISOString()
+                }
+              }
+            );
+            if(!res.init_point) {
+              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+              setTimeout(() => thread.delete(), 10000);
+              return;
+            }
+            await thread.addMember(interaction.user.id);
+            const embed = new EmbedBuilder()
+            .setTitle("Plano Premium Ultimate")
+            .setDesc(`Clique no botão abaixo para ser redirecionado para a página de pagamento do Mercado Pago <:mercadopago:1313901326744293427>\nRealize o pagamento <t:${((Date.now() + 600000) / 1000).toFixed(0)}:R>, caso contrário, o link expirará.`);
+            const button = new ButtonBuilder()
+            .setStyle("link")
+            .setLabel("Link de pagamento")
+            .setURL(res.init_point)
+            await thread.createMessage(embed.build({
+              components: [
+                {
+                  type: 1,
+                  components: [button]
+                }
+              ]
+            }));
+            await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` });
           }
         }
       }
@@ -197,25 +297,74 @@ export default createListener({
       if(!key) {
         await interaction.createMessage({ content: `Chave inexistente!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
         setTimeout(async() => {
-          await (interaction.channel as PrivateThreadChannel).delete();
+          await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
         }, 10000);
         return;
       }
-      if(key.active) {
-        await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+      if(key.activeIn.includes(args[1])) {
+        await interaction.createMessage({ content: `Essa chave já foi ativada neste servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
         setTimeout(async() => {
-          await (interaction.channel as PrivateThreadChannel).delete();
+          await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
         }, 10000);
         return;
+      }
+      if(key.type === "LITE") {
+        if(key.activeIn.length > 0) {
+          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+          setTimeout(async() => {
+            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
+          }, 10000);
+          return;
+        }
+      }
+      else if(key.type === "PRO") {
+        if(key.activeIn.length > 1) {
+          await interaction.createMessage({ content: `Essa chave já foi ativada em 2 servidores!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+          setTimeout(async() => {
+            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
+          }, 10000);
+          return;
+        }
+      }
+      else if(key.type === "ULTIMATE") {
+        if(key.activeIn.length > 2) {
+          await interaction.createMessage({ content: `Essa chave já foi ativada em 3 servidores!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+          setTimeout(async() => {
+            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
+          }, 10000);
+          return;
+        }
+      }
+      else {
+        if(key.active) {
+          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+          setTimeout(async() => {
+            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
+          }, 10000);
+          return;
+        }
       }
       key.activeIn.push(args[1]);
       key.active = true;
-      guild.key = value;
+      if(guild.keys) {
+        guild.keys.push({
+          type: key.type,
+          expiresAt: key.expiresAt,
+          id: key.id
+        });
+      }
+      else guild.keys = [
+        {
+          type: key.type,
+          expiresAt: key.expiresAt,
+          id: key.id
+        }
+      ]
       await guild.save();
       await key.save();
       interaction.createMessage({ content: `Chave ativada com sucesso!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
       setTimeout(async() => {
-        await (interaction.channel as PrivateThreadChannel).delete();
+        await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
       }, 10000);
     }
   }

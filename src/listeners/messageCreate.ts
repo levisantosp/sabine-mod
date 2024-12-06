@@ -1,5 +1,5 @@
 import { Constants, Message, TextChannel } from "oceanic.js"
-import { CommandContext, createListener } from "../structures"
+import { CommandContext, createListener, Logger } from "../structures"
 import { Guild, GuildSchemaInterface, User, UserSchemaInterface } from "../database"
 
 export default createListener({
@@ -18,6 +18,7 @@ export default createListener({
     if(cmd.onlyDev && message.author.id !== "441932495693414410") return;
     if(cmd.onlyMod && !["1237458600046104617", "1237458505196114052", "1237457762502574130"].some(r => message.member?.roles.includes(r))) return;
     if(cmd.onlyBooster && !message.member.premiumSince) return;
+    if(cmd.onlyBoosterAndPremium && !["1265770785893515285", "1314272663316856863", "1314272739917303888", "1314272766891003945"].some(r => message.member?.roles.includes(r))) return;
     const user = (await User.findById(message.author.id) ?? new User({ _id: message.author.id })) as UserSchemaInterface;
     const guild = await Guild.findById(message.guild.id) as GuildSchemaInterface;
     const ctx = new CommandContext({
@@ -49,7 +50,7 @@ export default createListener({
         return await client.rest.users.get(user.replace(/[<@!>]/g, ""));
       }
       catch(e) {
-        console.error(e);
+        new Logger(client).error(e as Error);
       }
     }
     const getMember = (member: string) => {
@@ -57,7 +58,7 @@ export default createListener({
     }
     cmd.run({ ctx, getMember, getUser, client })
     .catch(e => {
-      console.error(e)
+      new Logger(client).error(e);
       ctx.send(`Ocorreu um erro inesperado ao executar este comando...\n\`${e}\``);
     });
   }

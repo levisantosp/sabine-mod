@@ -15,7 +15,12 @@ export const User = mongoose.model("users", new mongoose.Schema(
       type: Number,
       default: 0
     },
-    lang: String
+    lang: String,
+    plans: {
+      type: Array,
+      default: []
+    },
+    warned: Boolean
   }
 ));
 export const Guild = mongoose.model("guilds", new mongoose.Schema(
@@ -47,7 +52,7 @@ export const Guild = mongoose.model("guilds", new mongoose.Schema(
       default: 0
     },
     lastNews: String,
-    key: String
+    keys: Array
   }
 ));
 export const Blacklist = mongoose.model("blacklist", new mongoose.Schema(
@@ -70,7 +75,8 @@ export const Key = mongoose.model("keys", new mongoose.Schema(
     type: String,
     user: String,
     active: Boolean,
-    activeIn: Array
+    activeIn: Array,
+    canBeActivated: Number
   }
 ));
 type GuildSchemaEvent = {
@@ -86,28 +92,39 @@ type UserSchemaHistory = {
   match: string;
   teams: UserSchemaHistoryTeam[];
 }
+type UserSchemaPremium = {
+  type: "LITE" | "PRO" | "ULTIMATE",
+  expiresAt: number
+}
 type TBDMatches = {
   id: string;
   channel: string;
+}
+type GuildSchemaKey = {
+  type: "BOOSTER" | "LITE" | "PRO" | "ULTIMATE"
+  expiresAt?: number;
+  id: string;
 }
 export interface GuildSchemaInterface extends mongoose.Document {
   _id: string;
   lang: "pt" | "en";
   events: GuildSchemaEvent[];
   tournamentsLength: number;
-  lastResult: string;
+  lastResult?: string;
   matches: string[];
   tbdMatches: TBDMatches[];
   resendTime: number;
-  lastNews: string;
-  key?: string;
+  lastNews?: string;
+  keys?: GuildSchemaKey[];
 }
 export interface UserSchemaInterface extends mongoose.Document {
   _id: string;
   history: UserSchemaHistory[];
   guessesRight: number;
   guessesWrong: number;
-  lang: "pt" | "en"
+  lang?: "pt" | "en"
+  plans: UserSchemaPremium[];
+  warned?: boolean;
 }
 type BlacklistUser = {
   id: string;
@@ -134,4 +151,5 @@ export interface KeySchemaInterface extends mongoose.Document {
   user: string;
   active: boolean;
   activeIn: string[];
+  canBeActivated?: number;
 }

@@ -8,6 +8,7 @@ declare global {
       SABINE_TOKEN: string;
       MP_TOKEN: string;
       WEBHOOK_URL: string;
+      ERROR_LOG: string;
     }
   }
 }
