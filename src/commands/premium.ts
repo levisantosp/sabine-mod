@@ -6,7 +6,7 @@ export default createCommand({
   async run({ ctx }) {
     await ctx.message.delete();
     const menu = new SelectMenuBuilder()
-    .setPlaceholder("Pagamento com BRL")
+    .setPlaceholder("Pagamento via Mercado Pago ou cartão de crédito")
     .setOptions(
       {
         label: "Premium Booster",
@@ -52,7 +52,7 @@ export default createCommand({
       },
       {
         name: "Métodos de pagamento",
-        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:pix:1314231636883406939> Pix"
+        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:pix:1314231636883406939> Pix\n  - Chave: `pix@sabine.cloud`\n  - Pagamentos via Pix não são automatizados. Para conseguir o plano via Pix, faça o pagamento com o valor referente ao plano, abra um ticket em https://canary.discord.com/channels/1233965003850125433/1277285687074357313 e aguarde o atendimento"
       }
     );
     ctx.send(menu.build(embed.build()));
