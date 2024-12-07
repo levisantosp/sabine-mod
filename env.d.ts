@@ -9,6 +9,7 @@ declare global {
       MP_TOKEN: string;
       WEBHOOK_URL: string;
       ERROR_LOG: string;
+      USERS_LOG: string;
     }
   }
 }
