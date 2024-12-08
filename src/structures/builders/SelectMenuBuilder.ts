@@ -8,6 +8,9 @@ export default class SelectMenuBuilder {
   public minValues?: number;
   public maxValues?: number;
   public disabled?: boolean;
+  public constructor(type?: 3 | 5 | 6 | 7 | 8) {
+    if(type) this.type = type;
+  }
   public setCustomId(id: string) {
     this.customID = id;
     return this;

@@ -20,7 +20,7 @@ export default createCommand({
       .setLabel("Criar ticket")
       .setEmoji("🤝")
       .setCustomId("ticket");
-      message.edit(button.build("## Central de antedimento\nNessa área, você pode tirar suas dúvidas e resolver problemas com o bot entrando em contato com a equipe da Sabine através de um ticket de suporte totalmente privado."));
+      message.edit(button.build("## Central de atendimento\nNessa área, você pode tirar suas dúvidas e resolver problemas com o bot entrando em contato com a equipe da Sabine através de um ticket de suporte totalmente privado."));
     }
   }
 });
