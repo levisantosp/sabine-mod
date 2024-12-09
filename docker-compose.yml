@@ -8,3 +8,5 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+    ports:
+      - "3000:3000"
