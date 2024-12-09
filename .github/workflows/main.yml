@@ -12,14 +12,14 @@ jobs:
       - name: Setup ssh
         run: |
           mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/sabine
-          chmod 600 ~/.ssh/sabine
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/uthorized_keys
           cat >>~/.ssh/config << END
           Host prod
             HostName $SSH_HOST
             User $SSH_USERNAME
             Port $SSH_PORT
-            IdentityFile ~/.ssh/sabine
+            IdentityFile ~/.ssh/uthorized_keys
             StrictHostKeyChecking no
           END
         env:
@@ -27,6 +27,6 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.HOST }}
           SSH_PORT: 22
-      - name: update sabine
+      - name: update sabine-mod
         run: |
-          ssh prod 'cd sabine/sabine && git pull && docker compose up -d --build'
+          ssh prod 'cd sabine/sabine-mod && git pull && docker compose up -d --build'
