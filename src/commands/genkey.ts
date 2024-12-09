@@ -5,7 +5,9 @@ export default createCommand({
   name: "gerarchave",
   onlyBooster: true,
   async run({ ctx }) {
-    const keys = await Key.find() as KeySchemaInterface[];
+    const keys = await Key.find({
+      type: { $eq: "BOOSTER" }
+    }) as KeySchemaInterface[];
     if(keys.some(key => key.user === ctx.message.member.id)) return ctx.message.createReaction("error:1300882259078938685");
     let keyId = ""
     do {

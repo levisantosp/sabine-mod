@@ -83,14 +83,17 @@ export default createListener({
     }
     const deleteInactiveThreads = async() => {
       const guild = client.guilds.get("1233965003850125433")!;
-      const channel = guild.channels.get("1313902950426345492") as TextChannel;
-      const threads = channel.threads.filter(t => Date.now() - new Date(t.createdAt).getTime() >= 1.2e+6);
-      for(const thread of threads) await thread.delete();
+      const channels = guild.channels.filter(c => ["1313902950426345492", "1313588710637568030"].includes(c.id)) as TextChannel[];
+      for(const channel of channels) {
+        const threads = channel.threads.filter(t => Date.now() - new Date(t.createdAt).getTime() >= 1.2e+6);
+        for(const thread of threads) await thread.delete();
+      }
     }
     const deleteKeys = async() => {
       const keys = await Key.find(
         {
-          expiresAt: { $lte: Date.now() }
+          expiresAt: { $lte: Date.now() },
+          type: { $ne: "BOOSTER" }
         }
       ) as KeySchemaInterface[];
       for(const key of keys) {
@@ -101,6 +104,7 @@ export default createListener({
             let index = guild.keys.findIndex(k => k.id === key.id);
             if(index > -1) {
               guild.keys.splice(index, 1);
+              guild.tournamentsLength = 5;
             }
             await guild.save();
           }
@@ -108,9 +112,27 @@ export default createListener({
         await key.deleteOne();
       }
     }
+    const verifyKeyBooster = async() => {
+      const keys = await Key.find(
+        {
+          type: { $eq: "BOOSTER" }
+        }
+      ) as KeySchemaInterface[];
+      for(const key of keys) {
+        const member = client.guilds.get("1233965003850125433")!.members.get(key.user);
+        if(!member || (member && !member.premiumSince)) {
+          const guild = await Guild.findById(key.activeIn[0]) as GuildSchemaInterface;
+          let index = guild.keys?.findIndex(k => k.id === key.id)!;
+          guild.keys?.splice(index, 1);
+          await guild.save();
+          await key.deleteOne();
+        }
+      }
+    }
     const execTasks = async() => {
       try {
         await deleteKeys();
+        await verifyKeyBooster();
         await deleteInactiveThreads();
         await sendPremiumWarn();
         await removeDefaultPremium();

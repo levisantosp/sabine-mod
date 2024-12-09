@@ -294,53 +294,42 @@ export default createListener({
       if(!interaction.channel || interaction.channel.type !== 12) return;
       const guild = (await Guild.findById(args[1]) ?? new Guild({ _id: args[1] })) as GuildSchemaInterface;
       const key = (await Key.findById(value)) as KeySchemaInterface;
+      if(guild.keys?.length) {
+        await interaction.createMessage({ content: "Este servidor já possui ativa. Espere até que a mesma expire para conseguir ativar." });
+      }
       if(!key) {
-        await interaction.createMessage({ content: `Chave inexistente!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-        setTimeout(async() => {
-          await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-        }, 10000);
+        await interaction.createMessage({ content: `Chave inexistente!` });
+        return;
+      }
+      if(key.canBeActivated && key.canBeActivated >= Date.now()) {
+        await interaction.createMessage({ content: "Essa chave ainda não pode ser ativada. Veja quando ela poderá ser ativada usando `/premium`" });
         return;
       }
       if(key.activeIn.includes(args[1])) {
-        await interaction.createMessage({ content: `Essa chave já foi ativada neste servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-        setTimeout(async() => {
-          await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-        }, 10000);
+        await interaction.createMessage({ content: `Essa chave já foi ativada neste servidor!` });
         return;
       }
       if(key.type === "LITE") {
         if(key.activeIn.length > 0) {
-          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-          setTimeout(async() => {
-            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-          }, 10000);
+          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!` });
           return;
         }
       }
       else if(key.type === "PRO") {
         if(key.activeIn.length > 1) {
-          await interaction.createMessage({ content: `Essa chave já foi ativada em 2 servidores!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-          setTimeout(async() => {
-            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-          }, 10000);
+          await interaction.createMessage({ content: `Essa chave já foi ativada em 2 servidores!` });
           return;
         }
       }
       else if(key.type === "ULTIMATE") {
         if(key.activeIn.length > 2) {
-          await interaction.createMessage({ content: `Essa chave já foi ativada em 3 servidores!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-          setTimeout(async() => {
-            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-          }, 10000);
+          await interaction.createMessage({ content: `Essa chave já foi ativada em 3 servidores!` });
           return;
         }
       }
       else {
         if(key.active) {
-          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-          setTimeout(async() => {
-            await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-          }, 10000);
+          await interaction.createMessage({ content: `Essa chave já foi ativada em outro servidor!` });
           return;
         }
       }
@@ -360,12 +349,18 @@ export default createListener({
           id: key.id
         }
       ]
+      switch(key.type) {
+        case "BOOSTER": guild.tournamentsLength = 10;
+        break;
+        case "LITE": guild.tournamentsLength = 15;
+        break
+        case "PRO": guild.tournamentsLength = 20;
+        break
+        case "ULTIMATE": guild.tournamentsLength = 25;
+      }
       await guild.save();
       await key.save();
-      interaction.createMessage({ content: `Chave ativada com sucesso!\nFechando o tópico <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-      setTimeout(async() => {
-        await (interaction.channel as PrivateThreadChannel).delete().catch(e => new Logger(client).error(e));
-      }, 10000);
+      interaction.createMessage({ content: `Chave ativada com sucesso!` });
     }
   }
 });
