@@ -73,6 +73,21 @@ export class User extends UserSchema {
     });
     this.warned = false;
     await this.save();
+    if(premium === "LITE") {
+      const guild = client.guilds.get("1233965003850125433")!;
+      const member = guild.members.get(this.id);
+      if(member) member.addRole("1314272663316856863");
+    }
+    else if(premium === "PRO") {
+      const guild = client.guilds.get("1233965003850125433")!;
+      const member = guild.members.get(this.id);
+      if(member) member.addRole("1314272739917303888");
+    }
+    else if(premium === "ULTIMATE") {
+      const guild = client.guilds.get("1233965003850125433")!;
+      const member = guild.members.get(this.id);
+      if(member) member.addRole("1314272766891003945");
+    }
     const channel = client.getChannel(process.env.USERS_LOG) as TextChannel;
     const user = client.users.get(this.id);
     const embed = new EmbedBuilder()

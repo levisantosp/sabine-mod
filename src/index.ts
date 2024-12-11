@@ -47,21 +47,6 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
         .setFooter({ text: "O tópico será deletado automaticamente após 20 minutos de inatividade" });
         const channel = client.getChannel(args[0]) as TextChannel;
         if(channel) channel.createMessage(embed.build());
-        if(type === "LITE") {
-          const guild = client.guilds.get("1233965003850125433")!;
-          const member = guild.members.get(user.id);
-          if(member) member.addRole("1314272663316856863");
-        }
-        else if(type === "PRO") {
-          const guild = client.guilds.get("1233965003850125433")!;
-          const member = guild.members.get(user.id);
-          if(member) member.addRole("1314272739917303888");
-        }
-        else if(type === "ULTIMATE") {
-          const guild = client.guilds.get("1233965003850125433")!;
-          const member = guild.members.get(user.id);
-          if(member) member.addRole("1314272766891003945");
-        }
       }
       else if(details.status === "rejected") {
         const embed = new EmbedBuilder()
