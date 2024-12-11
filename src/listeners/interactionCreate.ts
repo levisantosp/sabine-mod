@@ -296,6 +296,7 @@ export default createListener({
       const key = (await Key.findById(value)) as KeySchemaInterface;
       if(guild.keys?.length) {
         await interaction.createMessage({ content: "Este servidor já possui ativa. Espere até que a mesma expire para conseguir ativar." });
+        return;
       }
       if(!key) {
         await interaction.createMessage({ content: `Chave inexistente!` });
