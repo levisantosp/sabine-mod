@@ -15,20 +15,7 @@ export default createCommand({
       return;
     }
     const user = (await User.findById(duser.id) || new User({ _id: duser.id })) as UserSchemaInterface;
-    const options = {
-      pro: async() => {
-        await user.addPremium("PRO", "ADD_PREMIUM_BY_COMMAND");
-        ctx.send(`Premium Pro activated for ${duser.mention}`);
-      },
-      lite: async() => {
-        await user.addPremium("LITE", "ADD_PREMIUM_BY_COMMAND");
-        ctx.send(`Premium Lite activated for ${duser.mention}`);
-      },
-      ultimate: async() => {
-        await user.addPremium("ULTIMATE", "ADD_PREMIUM_BY_COMMAND");
-        ctx.send(`Premium Ultimate activated for ${duser.mention}`);
-      }
-    }
-    options[ctx.args[0] as "pro" | "lite" | "ultimate"]();
+    await user.addPremium("ADD_PREMIUM_BY_COMMAND");
+    ctx.send(`Premium Pro activated for ${duser.mention}`);
   }
 });
