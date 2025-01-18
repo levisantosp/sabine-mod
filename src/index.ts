@@ -38,9 +38,8 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
       const args = details.external_reference.split(";");
       if(details.status === "approved" && !cache.has(details.external_reference)) {
         cache.add(details.external_reference);
-        let type: "LITE" | "PRO" | "ULTIMATE" = args[2].replace("PREMIUM_", "");
         const user = (await User.findById(args[1]) || new User({ _id: args[1] })) as UserSchemaInterface;
-        let keyId = await user.addPremium(type, "BUY_PREMIUM");
+        let keyId = await user.addPremium("BUY_PREMIUM");
         const embed = new EmbedBuilder()
         .setTitle("Pagamento aprovado")
         .setDesc(`Sua compra de **${details.transaction_details.total_paid_amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}** foi aprovada e você já pode aproveitar seus benefícios!\n\nSua chave de ativação é \`${keyId}\`\nNão compartilhe com NINGUÉM!\n\nPara ativar sua chave, vá em https://canary.discord.com/channels/1233965003850125433/1313588710637568030 e use o comando \`${process.env.PREFIX}ativarchave <id do servidor>\``)

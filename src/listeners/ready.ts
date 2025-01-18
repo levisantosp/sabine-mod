@@ -44,22 +44,17 @@ export default createListener({
           const member = client.guilds.get("1233965003850125433")!.members.get(user.id);
           user.plans.shift();
           if(member) {
-            if(premium.type === "LITE") {
+            if(premium.type === "PREMIUM") {
               member.removeRole("1314272663316856863");
             }
-            else if(premium.type === "PRO") {
-              member.removeRole("1314272739917303888");
-            }
-            else if(premium.type === "ULTIMATE") {
-              member.removeRole("1314272766891003945");
-            }
-            member.user.createDM().then(dm => dm.createMessage({
-              content: `Seu premium \`${premium.type}\` expirou! Caso queira realizar uma renovação do plano, vá em https://canary.discord.com/channels/1233965003850125433/1313902950426345492 e selecione o plano desejado!`
+            member.user.createDM()
+            .then(dm => dm.createMessage({
+              content: `Seu premium expirou! Caso queira realizar uma renovação do plano, vá em https://canary.discord.com/channels/1233965003850125433/1313902950426345492 e selecione o plano desejado!`
             }))
             .catch();
           }
         }
-        user.save();
+        await user.save();
       }
     }
     const sendPremiumWarn = async() => {
