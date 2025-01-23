@@ -127,12 +127,19 @@ export default createListener({
     const execTasks = async() => {
       try {
         await deleteKeys();
+        Logger.send("deleteKeys function executed");
         await verifyKeyBooster();
+        Logger.send("verifyKeyBooster function executed");
         await deleteInactiveThreads();
+        Logger.send("deleteInactiveThreads function executed");
         await sendPremiumWarn();
+        Logger.send("sendPremiumWarn function executed");
         await removeDefaultPremium();
+        Logger.send("removeDefaultPremium function executed");
         await removeUserFromBlacklist();
+        Logger.send("removeUserFromBlacklist function executed");
         await removeGuildFromBlacklist();
+        Logger.send("removeGuildFromBlacklist function executed");
       }
       catch(e) {
         new Logger(client).error(e as Error);
