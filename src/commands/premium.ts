@@ -26,11 +26,11 @@ export default createCommand({
     .setFields(
       {
         name: "Premium Booster",
-        value: "- 1x Chave Booster\n  - Chave gerada manualmente\n  - Pode ser ativada em até um servidor\n  - Pode adicionar até 10 campeonatos\n  - Dura enquanto o impulso estiver ativo"
+        value: "- Chave Booster gerada manualmente\n  - Pode ser ativada em até um servidor\n  - Pode adicionar até 10 campeonatos\n  - Dura enquanto o impulso estiver ativo"
       },
       {
         name: "Premium",
-        value: "- 2x Chave Premium\n  - Chave gerada automaticamente\n  - Pode ser ativada em até 2 servidores diferentes\n  - Pode adicionar até 20 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
+        value: "- Chave Premium gerada automaticamente\n  - Pode ser ativada em até 2 servidores diferentes\n  - Pode adicionar até 20 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
       },
       {
         name: "Métodos de pagamento",
