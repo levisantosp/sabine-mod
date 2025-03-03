@@ -5,8 +5,8 @@ import transcript from "oceanic-transcripts"
 import paypal from "@paypal/checkout-server-sdk"
 import MercadoPago, { Preference } from "mercadopago"
 const mpClient = new MercadoPago({ accessToken: process.env.MP_TOKEN });
-const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN);
-const paypalClient = new paypal.core.PayPalHttpClient(sandbox);
+// const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN);
+// const paypalClient = new paypal.core.PayPalHttpClient(sandbox);
 
 export default createListener({
   name: "interactionCreate",
