@@ -41,9 +41,9 @@ export default createCommand({
       }
     ).save();
     ctx.message.author.createDM().then(dm => dm.createMessage({
-      content: `Sua Key Booster é \`${keyId}\`.\nNão compartilhe essa chave com NINGUÉM.`
+      content: `Your Key Booster is \`${keyId}\`.\nDo not share with ANYONE.`
     }))
-    .catch(() => ctx.send("Abra sua DM para este servidor."))
+    .catch(() => ctx.send("Open your DM for this server."))
     .then(() => {
       ctx.message.createReaction("success:1300882212190945292");
     });
