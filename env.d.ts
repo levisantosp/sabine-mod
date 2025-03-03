@@ -7,9 +7,12 @@ declare global {
       MOD_LOG: string;
       SABINE_TOKEN: string;
       MP_TOKEN: string;
-      WEBHOOK_URL: string;
+      MP_WEBHOOK_URL: string;
+      PAYPAL_WEBHOOK_URL: string;
       ERROR_LOG: string;
       USERS_LOG: string;
+      PAYPAL_TOKEN: string;
+      PAYPAL_CLIENT_ID: string;
     }
   }
 }

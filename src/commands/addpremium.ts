@@ -16,6 +16,6 @@ export default createCommand({
     }
     const user = (await User.findById(duser.id) || new User({ _id: duser.id })) as UserSchemaInterface;
     await user.addPremium("ADD_PREMIUM_BY_COMMAND");
-    ctx.send(`Premium Pro activated for ${duser.mention}`);
+    ctx.send(`Premium activated for ${duser.mention}`);
   }
 });

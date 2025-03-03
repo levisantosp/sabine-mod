@@ -6,35 +6,40 @@ export default createCommand({
   async run({ ctx }) {
     await ctx.message.delete();
     const menu = new SelectMenuBuilder()
-    .setPlaceholder("Selecione um plano")
+    .setPlaceholder("Select a plan")
     .setOptions(
       {
         label: "Premium Booster",
         value: "premium_booster",
-        description: "Consiga o Premium Booster apenas impulsionando o servidor!"
+        description: "Get the Premium Booster just by boosting the server!"
       },
       {
-        label: "Premium",
-        value: "premium",
-        description: "Compre o Premium por apenas R$ 5,99 durante 30 dias!"
+        label: "Premium | Mercado Pago, Pix, cartão de crédito",
+        value: "premium_br",
+        description: "Compre o Premium por apenas R$5,99 durante 30 dias!"
+      },
+      {
+        label: "Premium | PayPal",
+        value: "premium_usd",
+        description: "Buy Premium for just $2.99 for 30 days!"
       }
     )
     .setCustomId("premium")
     const embed = new EmbedBuilder()
-    .setTitle("SEJA PREMIUM")
-    .setDesc("Use este painel para adquirir um de nossos planos e ganhar vantagens exclusivas para o seu servidor!")
+    .setTitle("BECOME A PREMIUM USER")
+    .setDesc("Use this panel to purchase one of our plans and gain exclusive advantages for your server!")
     .setFields(
       {
         name: "Premium Booster",
-        value: "- Chave Booster gerada manualmente\n  - Pode ser ativada em até um servidor\n  - Pode adicionar até 10 campeonatos\n  - Dura enquanto o impulso estiver ativo"
+        value: "- Key Booster generated manually\n  - Can be activated on up to one server\n  - You can add up to 10 tournaments\n  - Lasts as long as the boost is active"
       },
       {
         name: "Premium",
-        value: "- Chave Premium gerada automaticamente\n  - Pode ser ativada em até 2 servidores diferentes\n  - Pode adicionar até 20 campeonatos\n  - Funcionalidade de notícias liberada\n  - Funcionalidade de acompanhar jogos ao vivo liberada"
+        value: "- Key Premium generated automatically\n  - Can be activated on up to 2 different servers\n  - You can add up to 20 tournaments\n  - News feature released\n  - Feature to follow matches live released"
       },
       {
-        name: "Métodos de pagamento",
-        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:pix:1314231636883406939> Pix\n- 💳 Cartão de crédito"
+        name: "Payment methods",
+        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:paypal:1313901126927650879> PayPal"
       }
     );
     ctx.send(menu.build(embed.build()));

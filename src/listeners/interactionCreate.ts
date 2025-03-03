@@ -2,8 +2,11 @@ import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteractio
 import { ButtonBuilder, createListener, EmbedBuilder, Logger } from "../structures"
 import { Guild, GuildSchemaInterface, Key, KeySchemaInterface } from "../database"
 import transcript from "oceanic-transcripts"
-import MercadoPago, { Payment, Preference } from "mercadopago"
+import paypal from "@paypal/checkout-server-sdk"
+import MercadoPago, { Preference } from "mercadopago"
 const mpClient = new MercadoPago({ accessToken: process.env.MP_TOKEN });
+const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN);
+const paypalClient = new paypal.core.PayPalHttpClient(sandbox);
 
 export default createListener({
   name: "interactionCreate",
@@ -124,14 +127,14 @@ export default createListener({
             });
           }
           break;
-          case "premium": {
+          case "premium_br": {
             await interaction.createMessage({
               content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
               flags: 64
             });
             const thread = await (interaction.channel as TextChannel)
             .startThreadWithoutMessage({
-              name: `Premium (${interaction.user.id})`,
+              name: `BRL Premium (${interaction.user.id})`,
               type: 12,
               invitable: false
             });
@@ -178,6 +181,58 @@ export default createListener({
             await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` });
           }
           break;
+          case "premium_usd": {
+            await interaction.createMessage({
+              content: "<a:carregando:809221866434199634> Preparing for your purchase...",
+              flags: 64
+            });
+            const thread = await (interaction.channel as TextChannel)
+            .startThreadWithoutMessage({
+              name: `USD Premium (${interaction.user.id})`,
+              type: 12,
+              invitable: false
+            });
+            await thread.addMember(interaction.member.id);
+            const req = new paypal.orders.OrdersCreateRequest()
+            .requestBody({
+              intent: "CAPTURE",
+              purchase_units: [
+                {
+                  amount: {
+                    currency_code: "BRL",
+                    value: "2.99"
+                  },
+                  reference_id: `${thread.id};${interaction.user.id};PREMIUM`
+                }
+              ],
+              application_context: {
+                return_url: process.env.PAYPAL_WEBHOOK_URL,
+                cancel_url: process.env.PAYPAL_WEBHOOK_URL
+              }
+            });
+            const res = await paypalClient.execute(req);
+            const link = res.result.links.find((link: any) => link.rel === "approve");
+            if(!link || !link.href) {
+              thread.createMessage({ content: "The payment link could not be generated and your purchase could not be completed." });
+              return;
+            }
+            const embed = new EmbedBuilder()
+            .setTitle("Premium Plan")
+            .setDesc(`Click on the button below to be redirected to the PayPal <:paypal:1313901126927650879>ayment page.`);
+            const button = new ButtonBuilder()
+            .setStyle("link")
+            .setLabel("Payment link")
+            .setURL(link.href)
+            await thread.createMessage(embed.build({
+              components: [
+                {
+                  type: 1,
+                  components: [button]
+                }
+              ]
+            }));
+            await interaction.editOriginal({ content: `Environment created! Continue your purchase in ${thread.mention}` });
+          }
         }
       }
     }

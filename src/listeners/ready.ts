@@ -49,9 +49,10 @@ export default createListener({
             }
             member.user.createDM()
             .then(dm => dm.createMessage({
-              content: `Seu premium expirou! Caso queira realizar uma renovação do plano, vá em https://canary.discord.com/channels/1233965003850125433/1313902950426345492 e selecione o plano desejado!`
+              content: `Your premium has expired! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
             }))
             .catch();
+            user.warned = false;
           }
         }
         await user.save();
@@ -59,7 +60,10 @@ export default createListener({
     }
     const sendPremiumWarn = async() => {
       const users = await User.find({
-        premium: { $exists: true }
+        plans: { $ne: [] },
+        warned: {
+          $eq: false
+        }
       }) as UserSchemaInterface[];
       for(const user of users) {
         if(user.warned) continue;
@@ -68,7 +72,7 @@ export default createListener({
         for(const premium of user.plans.filter(p => p.expiresAt - Date.now() <= 2.592e+8)) {
           if(member) {
             member.user.createDM().then(dm => dm.createMessage({
-              content: `Seu premium \`${premium.type}\` irá acabar <t:${(premium.expiresAt / 1000).toFixed(0)}:R>! Caso queria realizar uma renovação do plano, vá em https://canary.discord.com/channels/1233965003850125433/1313902950426345492 e selecione o plano desejado!`
+              content: `Your premium will expires <t:${(premium.expiresAt / 1000).toFixed(0)}:R>! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
             }))
             .catch();
           }
@@ -126,20 +130,17 @@ export default createListener({
     }
     const execTasks = async() => {
       try {
-        await deleteKeys();
-        Logger.send("deleteKeys function executed");
-        await verifyKeyBooster();
-        Logger.send("verifyKeyBooster function executed");
-        await deleteInactiveThreads();
-        Logger.send("deleteInactiveThreads function executed");
-        await sendPremiumWarn();
-        Logger.send("sendPremiumWarn function executed");
-        await removeDefaultPremium();
-        Logger.send("removeDefaultPremium function executed");
-        await removeUserFromBlacklist();
-        Logger.send("removeUserFromBlacklist function executed");
-        await removeGuildFromBlacklist();
-        Logger.send("removeGuildFromBlacklist function executed");
+        await Promise.all(
+          [
+            deleteKeys(),
+            verifyKeyBooster(),
+            deleteInactiveThreads(),
+            sendPremiumWarn(),
+            removeDefaultPremium(),
+            removeUserFromBlacklist(),
+            removeGuildFromBlacklist()
+          ]
+        );
       }
       catch(e) {
         new Logger(client).error(e as Error);

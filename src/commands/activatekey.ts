@@ -3,12 +3,12 @@ import { Key, KeySchemaInterface } from "../database"
 import { ButtonBuilder, createCommand } from "../structures"
 
 export default createCommand({
-  name: "ativarchave",
+  name: "activatekey",
   onlyBoosterAndPremium: true,
   async run({ ctx }) {
     if(ctx.message.channel.id !== "1313588710637568030") return;
     if(!ctx.args[0]) {
-      ctx.send("Informe o ID de um servidor");
+      ctx.send("Enter a server ID");
       return;
     }
     const keys = (await Key.find(
@@ -17,7 +17,7 @@ export default createCommand({
       }
     )) as KeySchemaInterface[];
     if(!keys.length) {
-      ctx.send("Você não possui nenhuma chave para ativar");
+      ctx.send("You do not have a key to activate");
       return;
     }
     const res = await fetch("https://discord.com/api/v10/users/@me/guilds", {
@@ -28,13 +28,13 @@ export default createCommand({
       }
     });
     if(!res.ok) {
-      ctx.send("Não foi possível completar a ação. Tente novamente mais tarde.");
+      ctx.send("The action could not be completed. Please try again later.");
       return;
     }
     const guilds = await res.json() as Guild[];
     const guild = guilds.find(guild => guild.id === ctx.args[0]);
     if(!guild) {
-      ctx.send("Servidor inválido.");
+      ctx.send("Invalid server.");
       return;
     }
     await ctx.message.createReaction("success:1300882212190945292");
@@ -45,9 +45,9 @@ export default createCommand({
     });
     await thread.addMember(ctx.message.author.id);
     const button = new ButtonBuilder()
-    .setLabel("Ativar")
+    .setLabel("Activate")
     .setStyle("red")
     .setCustomId(`key;${ctx.args[0]}`);
-    thread.createMessage(button.build(`Você está prestes a ativar uma chave em \`${guild.name}\`. Deseja prosseguir?`));
+    thread.createMessage(button.build(`You are about to activate a key in \`${guild.name}\`. Would you like to continue?`));
   }
 });
