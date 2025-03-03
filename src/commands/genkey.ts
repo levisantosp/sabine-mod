@@ -2,7 +2,7 @@ import { Key, KeySchemaInterface } from "../database"
 import { createCommand } from "../structures"
 
 export default createCommand({
-  name: "gerarchave",
+  name: "genkey",
   onlyBooster: true,
   async run({ ctx }) {
     const keys = await Key.find({
