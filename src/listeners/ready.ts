@@ -128,27 +128,14 @@ export default createListener({
         }
       }
     }
-    const execTasks = async() => {
-      try {
-        await Promise.all(
-          [
-            deleteKeys(),
-            verifyKeyBooster(),
-            deleteInactiveThreads(),
-            sendPremiumWarn(),
-            removeDefaultPremium(),
-            removeUserFromBlacklist(),
-            removeGuildFromBlacklist()
-          ]
-        );
-      }
-      catch(e) {
-        new Logger(client).error(e as Error);
-      }
-      finally {
-        setTimeout(execTasks, 15000);
-      }
-    }
-    execTasks();
+    setInterval(async() => {
+      await deleteKeys().catch(e => new Logger(client).error(e));
+      await verifyKeyBooster().catch(e => new Logger(client).error(e));
+      await deleteInactiveThreads().catch(e => new Logger(client).error(e));
+      await sendPremiumWarn().catch(e => new Logger(client).error(e));
+      await removeDefaultPremium().catch(e => new Logger(client).error(e));
+      await removeUserFromBlacklist().catch(e => new Logger(client).error(e));
+      await removeGuildFromBlacklist().catch(e => new Logger(client).error(e));
+    });
   }
 });
