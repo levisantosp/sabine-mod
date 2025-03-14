@@ -5,11 +5,7 @@ export default createCommand({
   name: "addpremium",
   onlyDev: true,
   async run({ ctx, getUser }) {
-    if(!ctx.args[0]) {
-      ctx.send("You need to enter the premium type.");
-      return;
-    }
-    const duser = await getUser(ctx.args[1]);
+    const duser = await getUser(ctx.args[0]);
     if(!duser) {
       ctx.send("Invalid user.");
       return;
