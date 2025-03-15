@@ -35,32 +35,28 @@ export default createListener({
         }
       }
     }
-    const removeDefaultPremium = async() => {
+    const removePremium = async() => {
       const users = await User.find({
-        plans: { $ne: [] }
+        "plan.expiresAt": { $lte: Date.now() }
       }) as UserSchemaInterface[];
+      if(!users.length) return;
       for(const user of users) {
-        for(const premium of user.plans.filter(p => p.expiresAt <= Date.now())) {
-          const member = client.guilds.get("1233965003850125433")!.members.get(user.id);
-          user.plans.shift();
-          if(member) {
-            if(premium.type === "PREMIUM") {
-              member.removeRole("1314272663316856863");
-            }
-            member.user.createDM()
-            .then(dm => dm.createMessage({
-              content: `Your premium has expired! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
-            }))
-            .catch();
-            user.warned = false;
-          }
+        const member = client.guilds.get("1233965003850125433")!.members.get(user.id);
+        if(member) {
+          member.removeRole("1314272663316856863");
+          member.user.createDM().then(dm => dm.createMessage({
+            content: `Your premium has expired! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
+          }))
+          .catch();
+          user.warned = false;
         }
+        user.removePremium("REMOVE_PREMIUM_BY_AUTO");
         await user.save();
       }
     }
     const sendPremiumWarn = async() => {
       const users = await User.find({
-        plans: { $ne: [] },
+        plan: { $exists: true },
         warned: {
           $eq: false
         }
@@ -69,10 +65,10 @@ export default createListener({
         if(user.warned) continue;
         user.warned = true;
         const member = client.guilds.get("1233965003850125433")!.members.get(user.id);
-        for(const premium of user.plans.filter(p => p.expiresAt - Date.now() <= 2.592e+8)) {
+        if((user.plan!.expiresAt - Date.now()) <= 2.592e+8) {
           if(member) {
             member.user.createDM().then(dm => dm.createMessage({
-              content: `Your premium will expires <t:${(premium.expiresAt / 1000).toFixed(0)}:R>! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
+              content: `Your premium will expires <t:${(user.plan!.expiresAt / 1000).toFixed(0)}:R>! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
             }))
             .catch(() => {});
           }
@@ -133,9 +129,9 @@ export default createListener({
       await verifyKeyBooster().catch(e => new Logger(client).error(e));
       await deleteInactiveThreads().catch(e => new Logger(client).error(e));
       await sendPremiumWarn().catch(e => new Logger(client).error(e));
-      await removeDefaultPremium().catch(e => new Logger(client).error(e));
+      await removePremium().catch(e => new Logger(client).error(e));
       await removeUserFromBlacklist().catch(e => new Logger(client).error(e));
       await removeGuildFromBlacklist().catch(e => new Logger(client).error(e));
-    }, 30000);
+    }, process.env.INTERVAL ?? 30000);
   }
 });

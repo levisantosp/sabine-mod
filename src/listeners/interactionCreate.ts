@@ -151,7 +151,7 @@ export default createListener({
                       id: "PREMIUM"
                     }
                   ],
-                  notification_url: process.env.WEBHOOK_URL,
+                  notification_url: process.env.MP_WEBHOOK_URL,
                   external_reference: `${thread.id};${interaction.user.id};PREMIUM`,
                   date_of_expiration: new Date(Date.now() + 600000).toISOString()
                 }

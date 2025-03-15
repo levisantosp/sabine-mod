@@ -56,27 +56,27 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
       }
     }
   });
-  fastify.post("/payment/paypal", {}, async(req, res) => {
-    let body = req.body as any;
-    let args = body.resource.purchase_units[0].reference_id.split(";");
-    if(body.resource.status === "APPROVED") {
-      const user = (await User.findById(args[1]) || new User({ _id: args[1] })) as UserSchemaInterface;
-      let keyId = await user.addPremium("BUY_PREMIUM");
-      const embed = new EmbedBuilder()
-      .setTitle("Payment approved")
-      .setDesc(`Your **${Number(body.resource.purchase_units[0].amount.value).toLocaleString("en-US", { style: "currency", currency: "USD" })}** purchase has been approved and you can now enjoy your benefits!\n\nYour activation key is \`${keyId}\`\nDo not share with ANYONE!\n\nTo activate your key, go to https://canary.discord.com/channels/1233965003850125433/1313588710637568030 and use the command \`${process.env.PREFIX}activatekey <server ID>\``)
-      .setFooter({ text: "The thread will be deleted automatically after 20 minutes of inactivity" });
-      const channel = client.getChannel(args[0]) as TextChannel;
-      if(channel) channel.createMessage(embed.build());
-    }
-    else if(body.resource.status === "VOIDED") {
-      const embed = new EmbedBuilder()
-      .setTitle("Pagamento rejeitado")
-      .setDesc(`Your **${Number(body.resource.purchase_units[0].amount.value).toLocaleString("en-US", { style: "currency", currency: "USD" })}** purchase has been voided and couldn't proceed with the payment!`)
-      const channel = client.getChannel(args[0]) as TextChannel;
-      if(channel) channel.createMessage(embed.build());
-    }
-  });
+  // fastify.post("/payment/paypal", {}, async(req, res) => {
+  //   let body = req.body as any;
+  //   let args = body.resource.purchase_units[0].reference_id.split(";");
+  //   if(body.resource.status === "APPROVED") {
+  //     const user = (await User.findById(args[1]) || new User({ _id: args[1] })) as UserSchemaInterface;
+  //     let keyId = await user.addPremium("BUY_PREMIUM");
+  //     const embed = new EmbedBuilder()
+  //     .setTitle("Payment approved")
+  //     .setDesc(`Your **${Number(body.resource.purchase_units[0].amount.value).toLocaleString("en-US", { style: "currency", currency: "USD" })}** purchase has been approved and you can now enjoy your benefits!\n\nYour activation key is \`${keyId}\`\nDo not share with ANYONE!\n\nTo activate your key, go to https://canary.discord.com/channels/1233965003850125433/1313588710637568030 and use the command \`${process.env.PREFIX}activatekey <server ID>\``)
+  //     .setFooter({ text: "The thread will be deleted automatically after 20 minutes of inactivity" });
+  //     const channel = client.getChannel(args[0]) as TextChannel;
+  //     if(channel) channel.createMessage(embed.build());
+  //   }
+  //   else if(body.resource.status === "VOIDED") {
+  //     const embed = new EmbedBuilder()
+  //     .setTitle("Pagamento rejeitado")
+  //     .setDesc(`Your **${Number(body.resource.purchase_units[0].amount.value).toLocaleString("en-US", { style: "currency", currency: "USD" })}** purchase has been voided and couldn't proceed with the payment!`)
+  //     const channel = client.getChannel(args[0]) as TextChannel;
+  //     if(channel) channel.createMessage(embed.build());
+  //   }
+  // });
 }
 
 const server = fastify();

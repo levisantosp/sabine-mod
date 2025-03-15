@@ -19,10 +19,7 @@ const UserSchema = mongoose.model("users", new mongoose.Schema(
       default: 0
     },
     lang: String,
-    plans: {
-      type: Array,
-      default: []
-    },
+    plan: Object,
     warned: Boolean
   }
 ));
@@ -55,22 +52,29 @@ export class User extends UserSchema {
       }
     }
     while (keys.some(key => key.id === keyId));
-    let expiresAt = !this.plans.at(-1) ? Date.now() + 2592000000 : Date.now() + ((this.plans.length + 1) * 2592000000);
-    await new Key(
-      {
-        _id: keyId,
-        type: "PREMIUM",
-        user: this.id,
-        active: false,
-        activeIn: [],
-        expiresAt,
-        canBeActivated: expiresAt - 2592000000
-      }
-    ).save();
-    this.plans.push({
+    let expiresAt = !this.plan ? Date.now() + 2592000000 : this.plan.expiresAt + 2592000000;
+    const key = keys.find(k => k.user === this.id && k.type !== "BOOSTER");
+    if(!key) {
+      await new Key(
+        {
+          _id: keyId,
+          type: "PREMIUM",
+          user: this.id,
+          active: false,
+          activeIn: [],
+          expiresAt
+        }
+      ).save();
+    }
+    else {
+      key.expiresAt = expiresAt;
+      keyId = key.id;
+      await key.save();
+    }
+    this.plan = {
       type: "PREMIUM",
       expiresAt
-    });
+    }
     this.warned = false;
     await this.save();
     const guild = client.guilds.get("1233965003850125433")!;
@@ -97,8 +101,14 @@ export class User extends UserSchema {
     return keyId;
   }
   public async removePremium(by: "REMOVE_PREMIUM_BY_AUTO" | "REMOVE_PREMIUM_BY_COMMAND") {
-    this.plans.shift();
-    await this.save();
+    await User.findOneAndUpdate(
+      {
+        _id: this.id
+      },
+      {
+        plan: { $unset: "" }
+      }
+    );
     const channel = client.getChannel(process.env.USERS_LOG) as TextChannel;
     const user = client.users.get(this.id);
     const embed = new EmbedBuilder()
@@ -297,7 +307,7 @@ export interface UserSchemaInterface extends User {
   guessesRight: number;
   guessesWrong: number;
   lang?: "pt" | "en"
-  plans: UserSchemaPremium[];
+  plan?: UserSchemaPremium;
   warned?: boolean;
 }
 type BlacklistUser = {
