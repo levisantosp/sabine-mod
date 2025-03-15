@@ -74,7 +74,7 @@ export default createListener({
             member.user.createDM().then(dm => dm.createMessage({
               content: `Your premium will expires <t:${(premium.expiresAt / 1000).toFixed(0)}:R>! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
             }))
-            .catch();
+            .catch(() => {});
           }
         }
         await user.save();

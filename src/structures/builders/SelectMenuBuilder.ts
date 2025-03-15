@@ -2,7 +2,7 @@ import { Constants, InitialInteractionContent, NullablePartialEmoji, SelectOptio
 
 export default class SelectMenuBuilder {
   public type: number = Constants.ComponentTypes.STRING_SELECT;
-  public customID?: string;
+  public customID!: string;
   public placeholder?: string;
   public options: SelectOption[] = [];
   public minValues?: number;
