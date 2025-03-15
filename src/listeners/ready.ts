@@ -136,6 +136,6 @@ export default createListener({
       await removeDefaultPremium().catch(e => new Logger(client).error(e));
       await removeUserFromBlacklist().catch(e => new Logger(client).error(e));
       await removeGuildFromBlacklist().catch(e => new Logger(client).error(e));
-    });
+    }, 30000);
   }
 });
