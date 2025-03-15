@@ -14,6 +14,7 @@ declare global {
       PAYPAL_TOKEN: string;
       PAYPAL_CLIENT_ID: string;
       PREMIUM_LOG: string;
+      INTERVAL: number;
     }
   }
 }
