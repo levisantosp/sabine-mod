@@ -77,6 +77,9 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
   //     if(channel) channel.createMessage(embed.build());
   //   }
   // });
+  fastify.get("/invite", async(req, reply) => {
+    return reply.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301);
+  });
 }
 
 const server = fastify();
