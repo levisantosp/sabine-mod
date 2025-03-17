@@ -80,7 +80,7 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
 }
 const redirectUrl: FastifyPluginAsyncTypebox = async(fastify, opts) => {
   fastify.get("/invite", async(req, reply) => {
-    return reply.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301);
+    return reply.redirect("https://discord.com/oauth2/authorize?client_id=1235576817683922954&scope=bot&permissions=388096", 301).code(200);
   });
 }
 
