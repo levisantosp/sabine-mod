@@ -90,7 +90,7 @@ export default createListener({
       else if(args[0] === "key") {
         await interaction.createModal({
           customID: `active-key;${args[1]}`,
-          title: "Insira a chave que deseja ativar",
+          title: "Insert the key you want to activate",
           components: [
             {
               type: 1,
@@ -98,7 +98,7 @@ export default createListener({
                 {
                   type: 4,
                   customID: "response-modal",
-                  label: "CHAVE DE ATIVAÇÃO",
+                  label: "ACTIVATION KEY",
                   style: 1,
                   minLength: 19,
                   maxLength: 19,
@@ -183,7 +183,7 @@ export default createListener({
           break;
           case "premium_usd": {
             await interaction.createMessage({
-              content: "PayPal payments are not currently automated. Create a ticket in https://discord.com/channels/1233965003850125433/1277285687074357313 and say you want to buy Premium via PayPal!",
+              content: "Payments via <:paypal:1313901126927650879>ayPal are not currently automated. Create a ticket in https://discord.com/channels/1233965003850125433/1277285687074357313 and say you want to buy Premium via <:paypal:1313901126927650879>ayPal!",
               flags: 64
             });
             // await interaction.createMessage({

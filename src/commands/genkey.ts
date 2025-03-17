@@ -3,6 +3,7 @@ import { createCommand } from "../structures"
 
 export default createCommand({
   name: "genkey",
+  aliases: ["gerarchave"],
   onlyBooster: true,
   async run({ ctx }) {
     const keys = await Key.find({
