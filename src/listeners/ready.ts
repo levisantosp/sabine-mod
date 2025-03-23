@@ -138,6 +138,7 @@ export default createListener({
             $exists: true
           }
         }) as GuildSchemaInterface[];
+        if(!guilds.length) return;
         let content = "## Our official Partners\n"
         for(const guild of guilds) {
           content += `- ${guild.invite}\n`
