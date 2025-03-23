@@ -106,7 +106,7 @@ export class User extends UserSchema {
         _id: this.id
       },
       {
-        plan: { $unset: "" }
+        $unset: { plan: "" }
       }
     );
     const channel = client.getChannel(process.env.USERS_LOG) as TextChannel;
