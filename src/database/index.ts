@@ -109,7 +109,7 @@ export class User extends UserSchema {
         $unset: { plan: "" }
       }
     );
-    const channel = client.getChannel(process.env.USERS_LOG) as TextChannel;
+    const channel = client.getChannel(process.env.PREMIUM_LOG) as TextChannel;
     const user = client.users.get(this.id);
     const embed = new EmbedBuilder()
     .setTitle("New register")
