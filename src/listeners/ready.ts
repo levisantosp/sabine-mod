@@ -95,13 +95,12 @@ export default createListener({
         if(key.activeIn.length) {
           for(const gid of key.activeIn) {
             const guild = await Guild.findById(gid) as GuildSchemaInterface;
-            if(!guild || !guild.keys?.length) continue;
-            let index = guild.keys.findIndex(k => k.id === key.id);
-            if(index > -1) {
-              guild.keys.splice(index, 1);
-              guild.tournamentsLength = 5;
-            }
+            if(!guild || !guild.key) continue;
+            guild.tournamentsLength = 5;
             await guild.save();
+            await guild.updateOne({
+              $unset: { key: "" }
+            });
           }
         }
         await key.deleteOne();
@@ -117,8 +116,9 @@ export default createListener({
         const member = client.guilds.get("1233965003850125433")!.members.get(key.user);
         if(!member || (member && !member.premiumSince)) {
           const guild = await Guild.findById(key.activeIn[0]) as GuildSchemaInterface;
-          let index = guild.keys?.findIndex(k => k.id === key.id)!;
-          guild.keys?.splice(index, 1);
+          await guild.updateOne({
+            $unset: { key: "" }
+          });
           await guild.save();
           await key.deleteOne();
         }

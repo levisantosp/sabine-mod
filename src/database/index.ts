@@ -297,7 +297,7 @@ export interface GuildSchemaInterface extends mongoose.Document {
   tbdMatches: TBDMatches[];
   resendTime: number;
   lastNews?: string;
-  keys?: GuildSchemaKey[];
+  key?: GuildSchemaKey;
   newsChannel?: string;
   liveFeedChannel?: string;
 }
