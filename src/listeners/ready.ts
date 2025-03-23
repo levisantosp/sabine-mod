@@ -124,6 +124,42 @@ export default createListener({
         }
       }
     }
+    const verifyPartners = async() => {
+      const channel = client.getChannel("1346170715165950086") as TextChannel;
+      const message = (await channel.getMessages({
+        filter: (message) => message.author.id === client.user.id
+      }))[0];
+      if(!message) {
+        const guilds = await Guild.find({
+          partner: {
+            $eq: true
+          },
+          invite: {
+            $exists: true
+          }
+        }) as GuildSchemaInterface[];
+        let content = "## Our official Partners\n"
+        for(const guild of guilds) {
+          content += `- ${guild.invite}\n`
+        }
+        channel.createMessage({ content });
+      }
+      else {
+        const guilds = await Guild.find({
+          partner: {
+            $eq: true
+          },
+          invite: {
+            $exists: true
+          }
+        }) as GuildSchemaInterface[];
+        let content = "## Our official Partners\n"
+        for(const guild of guilds) {
+          content += `- ${guild.invite}\n`
+        }
+        message.edit({ content });
+      }
+    }
     setInterval(async() => {
       await deleteKeys().catch(e => new Logger(client).error(e));
       await verifyKeyBooster().catch(e => new Logger(client).error(e));
@@ -132,6 +168,7 @@ export default createListener({
       await removePremium().catch(e => new Logger(client).error(e));
       await removeUserFromBlacklist().catch(e => new Logger(client).error(e));
       await removeGuildFromBlacklist().catch(e => new Logger(client).error(e));
+      await verifyPartners().catch(e => new Logger(client).error(e));
     }, process.env.INTERVAL ?? 30000);
   }
 });

@@ -234,7 +234,9 @@ export const Guild = mongoose.model("guilds", new mongoose.Schema(
     liveMatches: {
       type: Array,
       default: []
-    }
+    },
+    partner: Boolean,
+    invite: String
   }
 ));
 export const Blacklist = mongoose.model("blacklist", new mongoose.Schema(
@@ -300,6 +302,8 @@ export interface GuildSchemaInterface extends mongoose.Document {
   key?: GuildSchemaKey;
   newsChannel?: string;
   liveFeedChannel?: string;
+  partner?: boolean;
+  invite?: string;
 }
 export interface UserSchemaInterface extends User {
   _id: string;
