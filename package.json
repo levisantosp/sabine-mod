@@ -4,7 +4,7 @@
     "@iamtraction/google-translate": "^2.0.1",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@types/express": "^5.0.0",
-    "body-parser": "^1.20.3",
+    "body-parser": "^2.2.0",
     "colors": "^1.4.0",
     "enhanced-ms": "^3.0.0",
     "fastify": "^5.1.0",
