@@ -23,22 +23,8 @@ export default createListener({
     const guild = await Guild.findById(message.guild.id) as GuildSchemaInterface;
     const ctx = new CommandContext({
       db: {
-        user: {
-          get() {
-            return user;
-          },
-          async getById(id: string) {
-            return await User.findById(id) as unknown as Promise<UserSchemaInterface>
-          }
-        },
-        guild: {
-          get() {
-            return guild;
-          },
-          async getById(id: string) {
-            return await Guild.findById(id) as unknown as Promise<GuildSchemaInterface>
-          }
-        }
+        user,
+        guild
       },
       guild: message.guild,
       message: message as Message<TextChannel>,

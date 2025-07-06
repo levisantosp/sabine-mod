@@ -28,7 +28,45 @@ const UserSchema = mongoose.model("users", new mongoose.Schema(
       default: []
     },
     warned: Boolean,
-    plan: Object
+    plan: Object,
+    roster: {
+      active: {
+        type: Array,
+        default: []
+      },
+      reserve: {
+        type: Array,
+        default: []
+      }
+    },
+    coins: {
+      type: BigInt,
+      default: 0n
+    },
+    claim_time: {
+      type: Number,
+      default: 0
+    },
+    team: {
+      name: String,
+      tag: String
+    },
+    career: {
+      type: Array,
+      default: []
+    },
+    wins: {
+      type: Number,
+      default: 0
+    },
+    defeats: {
+      type: Number,
+      default: 0
+    },
+    daily_time: {
+      type: Number,
+      default: 0
+    }
   }
 ));
 export class User extends UserSchema {
@@ -368,93 +406,119 @@ export const Key = mongoose.model("keys", new mongoose.Schema(
   }
 ));
 type GuildSchemaEvent = {
-  name: string;
-  channel1: string;
-  channel2: string;
+  name: string
+  channel1: string
+  channel2: string
 }
 type UserSchemaPredictionTeam = {
-  name: string;
-  score: string;
+  name: string
+  score: string,
+  winner: boolean
 }
 type UserSchemaPrediction = {
-  match: string;
-  teams: UserSchemaPredictionTeam[];
+  match: string | number
+  teams: UserSchemaPredictionTeam[]
   status?: "pending" | "correct" | "wrong"
+  bet?: bigint
+  odd?: number
 }
 type UserSchemaPremium = {
-  type: "PREMIUM",
+  type: "PREMIUM"
   expiresAt: number
 }
+type UserSchemaRoster = {
+  active: string[]
+  reserve: string[]
+}
+type UserSchemaTeam = {
+  name?: string
+  tag?: string
+}
+type UserSchemaCareerTeam = {
+  user: string
+  score: number
+}
+type UserSchemaCareer = {
+  teams: UserSchemaCareerTeam[]
+}
 type TBDMatch = {
-  id: string;
-  channel: string;
+  id: string
+  channel: string
 }
 type GuildSchemaKey = {
   type: "BOOSTER" | "PREMIUM"
-  expiresAt?: number;
-  id: string;
+  expiresAt?: number
+  id: string
 }
 export interface GuildSchemaInterface extends mongoose.Document {
-  _id: string;
-  lang: "pt" | "en";
-  valorant_events: GuildSchemaEvent[];
-  tournamentsLength: number;
-  valorant_resend_time: number;
-  valorant_last_news?: string;
-  key?: GuildSchemaKey;
-  valorant_last_result?: string;
-  valorant_matches: string[];
-  valorant_tbd_matches: TBDMatch[];
-  valorant_news_channel?: string;
-  valorant_livefeed_channel?: string;
-  valorant_live_matches: any[];
-  lol_events: GuildSchemaEvent[];
-  lol_last_result: string;
-  lol_matches: string[];
-  lol_tbd_matches: TBDMatch[];
-  lol_last_news?: string;
-  lol_news_channel?: string;
-  lol_livefeed_channel?: string;
-  lol_live_matches: any[];
-  lol_resend_time: number;
-  partner?: boolean;
-  invite?: string;
+  _id: string
+  lang: "pt" | "en"
+  valorant_events: GuildSchemaEvent[]
+  tournamentsLength: number
+  valorant_resend_time: number
+  valorant_last_news?: string
+  key?: GuildSchemaKey
+  valorant_last_result?: string
+  valorant_matches: string[]
+  valorant_tbd_matches: TBDMatch[]
+  valorant_news_channel?: string
+  valorant_livefeed_channel?: string
+  valorant_live_matches: any[]
+  lol_events: GuildSchemaEvent[]
+  lol_last_result: string
+  lol_matches: string[]
+  lol_tbd_matches: TBDMatch[]
+  lol_last_news?: string
+  lol_news_channel?: string
+  lol_livefeed_channel?: string
+  lol_live_matches: any[]
+  lol_resend_time: number
+  partner?: boolean
+  invite?: string
 }
 export interface UserSchemaInterface extends User {
-  _id: string;
-  valorant_predictions: UserSchemaPrediction[];
-  lol_predictions: UserSchemaPrediction[];
-  correct_predictions: number;
-  wrong_predictions: number;
+  _id: string
+  valorant_predictions: UserSchemaPrediction[]
+  lol_predictions: UserSchemaPrediction[]
+  correct_predictions: number
+  wrong_predictions: number
   lang?: "pt" | "en"
-  plans: UserSchemaPremium[];
-  warned?: boolean;
-  plan?: UserSchemaPremium;
+  plans: UserSchemaPremium[]
+  warned?: boolean
+  plan?: UserSchemaPremium
+  roster: UserSchemaRoster
+  coins: bigint
+  team: UserSchemaTeam
+  career: UserSchemaCareer[]
+  wins: number
+  defeats: number
+  daily_time: number
+  claim_time: number
 }
 type BlacklistUser = {
-  id: string;
-  when: number;
-  reason: string;
-  endsAt: number;
+  id: string
+  when: number
+  reason: string
+  endsAt: number
 }
 type BlacklistGuild = {
-  id: string;
-  name?: string;
-  when: number;
-  reason: string;
-  endsAt: number;
+  id: string
+  name?: string
+  when: number
+  reason: string
+  endsAt: number
 }
 export interface BlacklistSchemaInterface extends mongoose.Document {
-  _id: string;
-  users: BlacklistUser[];
-  guilds: BlacklistGuild[];
+  _id: string
+  users: BlacklistUser[]
+  guilds: BlacklistGuild[]
 }
 export interface KeySchemaInterface extends mongoose.Document {
-  _id: string;
-  expiresAt?: number;
+  _id: string
+  expiresAt?: number
   type: "BOOSTER" | "PREMIUM"
-  user: string;
-  active: boolean;
-  activeIn: string[];
-  canBeActivated?: number;
+  user: string
+  active: boolean
+  activeIn: string[]
+  canBeActivated?: number
 }

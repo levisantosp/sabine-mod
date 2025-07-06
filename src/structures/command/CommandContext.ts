@@ -3,14 +3,8 @@ import App from "../client/App"
 import { GuildSchemaInterface, UserSchemaInterface } from "../../database"
 
 type Database = {
-  user: {
-    get: () => UserSchemaInterface;
-    getById: (id: string) => Promise<UserSchemaInterface>;
-  },
-  guild: {
-    get: () => GuildSchemaInterface;
-    getById: (id: string) => Promise<GuildSchemaInterface>;
-  }
+  user: UserSchemaInterface,
+  guild: GuildSchemaInterface
 }
 type CommandContextOptions = {
   client: App;

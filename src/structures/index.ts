@@ -5,6 +5,8 @@ import App from "./client/App"
 import createListener from "./client/createListener"
 import CommandContext from "./command/CommandContext"
 import createCommand from "./command/createCommand"
+import getPlayer from './util/getPlayer'
+import getPlayers from './util/getPlayers'
 import Logger from "./util/Logger"
 
 export {
@@ -15,5 +17,7 @@ export {
   ButtonBuilder,
   SelectMenuBuilder,
   EmbedBuilder,
-  Logger
+  Logger,
+  getPlayer,
+  getPlayers
 }

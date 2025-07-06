@@ -11,7 +11,7 @@ export default createCommand({
     const message = messages.filter(m => m.author.id === client.user.id)[0];
     if(!message) {
       channel.createMessage({
-        content: "## Central de antedimento\nNessa área, você pode tirar suas dúvidas e resolver problemas com o bot entrando em contato com a equipe da Sabine."
+        content: "## Customer Support Center\nIn this area, you can ask questions and solve issues with the bot by contacting the Sabine team."
       });
     }
     else {
@@ -20,7 +20,7 @@ export default createCommand({
       .setLabel("Criar ticket")
       .setEmoji("🤝")
       .setCustomId("ticket");
-      message.edit(button.build("## Central de atendimento\nNessa área, você pode tirar suas dúvidas e resolver problemas com o bot entrando em contato com a equipe da Sabine através de um ticket de suporte totalmente privado."));
+      message.edit(button.build("## Customer Support Center\nIn this area, you can ask questions and solve issues with the bot by contacting the Sabine team."));
     }
   }
 });

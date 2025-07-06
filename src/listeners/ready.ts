@@ -1,6 +1,6 @@
 import { TextChannel } from "oceanic.js"
-import { createListener, Logger } from "../structures"
-import { Blacklist, BlacklistSchemaInterface, Guild, GuildSchemaInterface, Key, KeySchemaInterface, User, UserSchemaInterface } from "../database"
+import { createListener, Logger } from "../structures/index.js"
+import { Blacklist, BlacklistSchemaInterface, Guild, GuildSchemaInterface, Key, KeySchemaInterface, User, UserSchemaInterface } from "../database/index.js"
 import ms from "enhanced-ms"
 
 export default createListener({

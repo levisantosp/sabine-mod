@@ -1,5 +1,5 @@
 import { TextChannel } from "oceanic.js"
-import { createCommand } from "../structures"
+import { createCommand } from "../structures/index.js"
 import ms from "enhanced-ms"
 import translate from "@iamtraction/google-translate"
 

@@ -21,8 +21,8 @@ export type Command = {
   onlyBooster?: boolean;
   onlyPremium?: boolean;
   onlyBoosterAndPremium?: boolean;
-  run: (options: CommandOptions) => Promise<void>;
-  createInteraction?: (options: CreateComponentInteractionOptions) => Promise<void>;
+  run: (options: CommandOptions) => Promise<any>;
+  createInteraction?: (options: CreateComponentInteractionOptions) => Promise<any>;
 }
 export default function(
   command: Command

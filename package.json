@@ -6,7 +6,7 @@
     "@types/express": "^5.0.0",
     "body-parser": "^1.20.3",
     "colors": "^1.4.0",
-    "enhanced-ms": "^4.1.0",
+    "enhanced-ms": "^3.0.0",
     "fastify": "^5.1.0",
     "mercadopago": "^2.0.15",
     "moment": "^2.30.1",
@@ -18,7 +18,7 @@
     "@types/node": "^24.0.7",
     "@types/paypal__checkout-server-sdk": "^1.0.8",
     "dotenv": "^17.0.0",
-    "tsx": "^4.17.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.5.4"
   },
   "name": "sabine-mod",

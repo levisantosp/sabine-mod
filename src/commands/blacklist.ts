@@ -1,5 +1,5 @@
-import { Blacklist, BlacklistSchemaInterface, Guild, User } from "../database"
-import { createCommand } from "../structures"
+import { Blacklist, BlacklistSchemaInterface, Guild, User } from "../database/index.js"
+import { createCommand } from "../structures/index.js"
 import ms from "enhanced-ms"
 
 export default createCommand({
