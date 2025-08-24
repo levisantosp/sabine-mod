@@ -1,62 +1,62 @@
 import { TextChannel } from "oceanic.js"
-import { createCommand } from "../structures/index.js"
 import ms from "enhanced-ms"
 import translate from "@iamtraction/google-translate"
+import createCommand from "../structures/command/createCommand.ts"
 
 export default createCommand({
   name: "timeout",
   aliases: ["t"],
   onlyMod: true,
   async run({ ctx, getMember, client }) {
-    await ctx.message.delete();
-    const member = getMember(ctx.args[0]);
-    const time = ctx.args[1];
-    let reason = ctx.args.slice(2).join(" ");
+    await ctx.message.delete()
+    const member = getMember(ctx.args[0])
+    const time = ctx.args[1]
+    let reason = ctx.args.slice(2).join(" ")
     if(!member) {
-      ctx.send("Informe um membro válido");
-      return;
+      await ctx.send("Informe um membro válido")
+      return
     }
     if(!time || !ms(time)) {
-      ctx.send("Informe o tempo (`30m`, `1h`, `1d`)");
-      return;
+      await ctx.send("Informe o tempo (`30m`, `1h`, `1d`)")
+      return
     }
     if(!reason) {
-      ctx.send("Informe o motivo");
-      return;
+      await ctx.send("Informe o motivo")
+      return
     }
     switch(reason) {
-      case "div": reason = "Divulgação não autorizada em canais de texto ou voz."
+      case "div": reason = "Unauthorized promotion in text or voice channels."
       break
-      case "divdm": reason = "Divulgação não autorizada via mensagem direta."
+      case "divdm": reason = "Unauthorized promotion via direct message."
       break
-      case "toxic": reason = "Comportamento desrespeitoso em canais de texto ou voz."
+      case "toxic": reason = "Disrespectful behavior in text or voice channels."
       break
-      case "owo": reason = "1, 2, 3 testando... OwO"
+      case "owo": reason = "1, 2, 3 testing... OwO"
       break
-      case "nsfw": reason = "Compartilhamento de conteúdo NSFW nos canais de texto ou voz."
+      case "nsfw": reason = "Sharing NSFW content in text or voice channels."
     }
     await member.user.createDM().then(dm => dm.createMessage({
-      content: `Você foi silenciado por **${ms(ms(time))}** no \`${ctx.guild.name}\` por \`${reason}\``
+      content: `You have been muted **${ms(ms(time))}** in \`${ctx.guild.name}\` for \`${reason}\``
     }))
-    .catch(() => {});
+    .catch(() => {})
     await member.edit({
       communicationDisabledUntil: new Date(Date.now() + ms(time)).toISOString()
-    });
-    const t = (await translate(ms(ms(time) as string), {
+    })
+    const t = (await translate(ms(ms(time))!, {
       to: "pt"
-    })).text;
-    ctx.send(`\`${member.tag}\` (\`${member.id}\`) foi silenciado por **${t}** por \`${reason}\``);
-    const channel = client.getChannel(process.env.MOD_LOG) as TextChannel;
-    channel.createMessage({
-      content: `\`${member.tag}\` (\`${member.id}\`) foi silenciado por **${t}** por \`${reason}\``
+    })).text
+    await ctx.send(`\`${member.tag}\` (\`${member.id}\`) has been muted for **${t}** for \`${reason}\``)
+    const channel = client.getChannel(process.env.MOD_LOG) as TextChannel
+    await channel.createMessage({
+      content: `\`${member.tag}\` (\`${member.id}\`) has been muted for **${t}** for \`${reason}\``
     })
     .then(msg => {
       msg.startThread({
         name: `Timeout ${member.tag} (${member.id})`
       })
       .then(t => t.createMessage({
-        content: `${ctx.message.author.mention}, envie as provas da punição aqui.`
-      }));
-    });
+        content: `${ctx.message.author.mention}, send the evidence of the punishment here.`
+      }))
+    })
   }
-});
+})

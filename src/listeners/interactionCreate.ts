@@ -1,25 +1,26 @@
-import { CategoryChannel, ComponentInteraction, Constants, ModalSubmitInteraction, PrivateThreadChannel, TextChannel, User } from "oceanic.js"
-import { ButtonBuilder, createListener, EmbedBuilder, Logger } from "../structures"
-import { Guild, GuildSchemaInterface, Key, KeySchemaInterface } from "../database"
+import { CategoryChannel, ComponentInteraction, Constants, TextChannel } from "oceanic.js"
 import transcript from "oceanic-transcripts"
-import paypal from "@paypal/checkout-server-sdk"
-import MercadoPago, { Preference } from "mercadopago"
-const mpClient = new MercadoPago({ accessToken: process.env.MP_TOKEN });
-// const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN);
-// const paypalClient = new paypal.core.PayPalHttpClient(sandbox);
+// import paypal from "@paypal/checkout-server-sdk"
+import { MercadoPagoConfig, Preference } from "mercadopago"
+import createListener from "../structures/client/createListener.ts"
+import EmbedBuilder from "../structures/builders/EmbedBuilder.ts"
+import ButtonBuilder from "../structures/builders/ButtonBuilder.ts"
+const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_TOKEN })
+// const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN)
+// const paypalClient = new paypal.core.PayPalHttpClient(sandbox)
 
 export default createListener({
   name: "interactionCreate",
   async run(client, interaction) {
     if(interaction instanceof ComponentInteraction) {
-      if(!interaction.guild || !interaction.guildID || !interaction.member || !interaction.channel) return;
-      const args = interaction.data.customID.split(";");
+      if(!interaction.guild || !interaction.guildID || !interaction.member || !interaction.channel) return
+      const args = interaction.data.customID.split("")
       if(interaction.data.customID === "ticket") {
-        await interaction.defer(64);
-        const category = interaction.guild.channels.get("1277285123070361673") as CategoryChannel;
+        await interaction.defer(64)
+        const category = interaction.guild.channels.get("1277285123070361673") as CategoryChannel
         if(category.channels.some(ch => ch.name.includes(interaction.user.id))) {
-          interaction.createFollowup({ content: "Você já tem um ticket criado. Espere até que um moderador delete o ticket." });
-          return;
+          interaction.createFollowup({ content: "Você já tem um ticket criado. Espere até que um moderador delete o ticket." })
+          return
         }
         const channel = await interaction.guild.createChannel(
           Constants.ChannelTypes.GUILD_TEXT,
@@ -44,7 +45,7 @@ export default createListener({
               }
             ]
           }
-        );
+        )
         const msg = await channel.createMessage({
           content: `${interaction.user.mention} Ticket criado com sucesso! Alguém virá falar com você em breve.\n- Enquanto ninguém aparece, fale com o que você precisa de ajuda.\n- Não mencione ninguém, apenas aguarde.`,
           components: [
@@ -63,21 +64,21 @@ export default createListener({
               ]
             }
           ]
-        });
-        await interaction.createFollowup({ content: `Ticket criado com sucesso!\n${msg.jumpLink}` });
+        })
+        await interaction.createFollowup({ content: `Ticket criado com sucesso!\n${msg.jumpLink}` })
       }
       else if(interaction.data.customID === "close-ticket") {
-        if(!["1237458600046104617", "1237458505196114052", "1237457762502574130"].some(r => interaction.member!.roles.includes(r))) return;
-        await interaction.deferUpdate(64);
-        await (interaction.channel as TextChannel).createMessage({ content: `Fechando ticket <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
+        if(!["1237458600046104617", "1237458505196114052", "1237457762502574130"].some(r => interaction.member!.roles.includes(r))) return
+        await interaction.deferUpdate(64)
+        await (interaction.channel as TextChannel).createMessage({ content: `Fechando ticket <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` })
         const attach = await transcript.createTranscript(interaction.channel as TextChannel, {
           poweredBy: false,
           saveImages: true,
           hydrate: true,
           filename: `transcript-${(interaction.channel as TextChannel).name.replace("ticket_", "")}.html`
-        });
+        })
         setTimeout(async() => {
-          await interaction.channel!.delete();
+          await interaction.channel!.delete()
           client.rest.channels.createMessage("1313845851998781562", {
             content: `Ticket requisitado por: <@${(interaction.channel as TextChannel).name.replace("ticket_", "")}>`,
             allowedMentions: {
@@ -85,11 +86,11 @@ export default createListener({
             },
             files: [attach]
           })
-        }, 10000);
+        }, 10000)
       }
       else if(args[0] === "key") {
         await interaction.createModal({
-          customID: `active-key;${args[1]}`,
+          customID: `active-key${args[1]}`,
           title: "Insert the key you want to activate",
           components: [
             {
@@ -108,37 +109,37 @@ export default createListener({
               ]
             }
           ]
-        });
+        })
       }
       else if(args[0] === "premium" && interaction) {
-        if(!interaction.guild || !interaction.guildID || !interaction.channel || !interaction.member) return;
+        if(!interaction.guild || !interaction.guildID || !interaction.channel || !interaction.member) return
         switch((interaction as ComponentInteraction<Constants.SelectMenuTypes>).data.values.raw[0]) {
           case "premium_booster": {
             if(interaction.member.premiumSince) {
               interaction.createMessage({
                 content: `Você já é um Premium Booster!\nCaso queira gerar e/ou ativar sua chave, siga o passo a passo:\n- Usar o comando \`${process.env.PREFIX}gerarchave\` em https://canary.discord.com/channels/1233965003850125433/1313588710637568030\n- Usar \`${process.env.PREFIX}ativarchave <servidor>\` no mesmo canal\n - Seguir o passo a passo no tópico que será criado`,
                 flags: 64
-              });
-              break;
+              })
+              break
             }
             interaction.createMessage({
               content: `Para conseguir o Premium Booster, você precisa seguir os seguintes passos:\n- Impulsionar o servidor\n- Usar o comando \`${process.env.PREFIX}gerarchave\` em https://canary.discord.com/channels/1233965003850125433/1313588710637568030 (o canal só libera depois que você impulsiona o servidor)\n- Usar \`${process.env.PREFIX}ativarchave <servidor>\` no mesmo canal\n - Seguir o passo a passo no tópico que será criado`,
               flags: 64
-            });
+            })
           }
-          break;
+          break
           case "premium_br": {
             await interaction.createMessage({
               content: "<a:carregando:809221866434199634> Preparando o ambiente para a sua compra...",
               flags: 64
-            });
+            })
             const thread = await (interaction.channel as TextChannel)
             .startThreadWithoutMessage({
               name: `BRL Premium (${interaction.user.id})`,
               type: 12,
               invitable: false
-            });
-            const preference = new Preference(mpClient);
+            })
+            const preference = new Preference(mpClient)
             const res = await preference.create(
               {
                 body: {
@@ -152,20 +153,20 @@ export default createListener({
                     }
                   ],
                   notification_url: process.env.MP_WEBHOOK_URL,
-                  external_reference: `${thread.id};${interaction.user.id};PREMIUM`,
+                  external_reference: `${thread.id}${interaction.user.id}PREMIUM`,
                   date_of_expiration: new Date(Date.now() + 600000).toISOString()
                 }
               }
-            );
+            )
             if(!res.init_point) {
-              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` });
-              setTimeout(() => thread.delete(), 10000);
-              return;
+              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` })
+              setTimeout(() => thread.delete(), 10000)
+              return
             }
-            await thread.addMember(interaction.user.id);
+            await thread.addMember(interaction.user.id)
             const embed = new EmbedBuilder()
             .setTitle("Plano Premium")
-            .setDesc(`Clique no botão abaixo para ser redirecionado para a página de pagamento do Mercado Pago <:mercadopago:1313901326744293427>\nRealize o pagamento <t:${((Date.now() + 600000) / 1000).toFixed(0)}:R>, caso contrário, o link expirará.`);
+            .setDesc(`Clique no botão abaixo para ser redirecionado para a página de pagamento do Mercado Pago <:mercadopago:1313901326744293427>\nRealize o pagamento <t:${((Date.now() + 600000) / 1000).toFixed(0)}:R>, caso contrário, o link expirará.`)
             const button = new ButtonBuilder()
             .setStyle("link")
             .setLabel("Link de pagamento")
@@ -177,26 +178,26 @@ export default createListener({
                   components: [button]
                 }
               ]
-            }));
-            await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` });
+            }))
+            await interaction.editOriginal({ content: `Ambiente criado! Continue com a compra em ${thread.mention}` })
           }
-          break;
+          break
           case "premium_usd": {
             await interaction.createMessage({
               content: "Payments via <:paypal:1313901126927650879>ayPal are not currently automated. Create a ticket in https://discord.com/channels/1233965003850125433/1277285687074357313 and say you want to buy Premium via <:paypal:1313901126927650879>ayPal!",
               flags: 64
-            });
+            })
             // await interaction.createMessage({
             //   content: "<a:carregando:809221866434199634> Preparing for your purchase...",
             //   flags: 64
-            // });
+            // })
             // const thread = await (interaction.channel as TextChannel)
             // .startThreadWithoutMessage({
             //   name: `USD Premium (${interaction.user.id})`,
             //   type: 12,
             //   invitable: false
-            // });
-            // await thread.addMember(interaction.member.id);
+            // })
+            // await thread.addMember(interaction.member.id)
             // const req = new paypal.orders.OrdersCreateRequest()
             // .requestBody({
             //   intent: "CAPTURE",
@@ -206,23 +207,23 @@ export default createListener({
             //         currency_code: "BRL",
             //         value: "2.99"
             //       },
-            //       reference_id: `${thread.id};${interaction.user.id};PREMIUM`
+            //       reference_id: `${thread.id}${interaction.user.id}PREMIUM`
             //     }
             //   ],
             //   application_context: {
             //     return_url: process.env.PAYPAL_WEBHOOK_URL,
             //     cancel_url: process.env.PAYPAL_WEBHOOK_URL
             //   }
-            // });
-            // const res = await paypalClient.execute(req);
-            // const link = res.result.links.find((link: any) => link.rel === "approve");
+            // })
+            // const res = await paypalClient.execute(req)
+            // const link = res.result.links.find((link: any) => link.rel === "approve")
             // if(!link || !link.href) {
-            //   thread.createMessage({ content: "The payment link could not be generated and your purchase could not be completed." });
-            //   return;
+            //   thread.createMessage({ content: "The payment link could not be generated and your purchase could not be completed." })
+            //   return
             // }
             // const embed = new EmbedBuilder()
             // .setTitle("Premium Plan")
-            // .setDesc(`Click on the button below to be redirected to the PayPal <:paypal:1313901126927650879>ayment page.`);
+            // .setDesc(`Click on the button below to be redirected to the PayPal <:paypal:1313901126927650879>ayment page.`)
             // const button = new ButtonBuilder()
             // .setStyle("link")
             // .setLabel("Payment link")
@@ -234,11 +235,11 @@ export default createListener({
             //       components: [button]
             //     }
             //   ]
-            // }));
-            // await interaction.editOriginal({ content: `Environment created! Continue your purchase in ${thread.mention}` });
+            // }))
+            // await interaction.editOriginal({ content: `Environment created! Continue your purchase in ${thread.mention}` })
           }
         }
       }
     }
   }
-});
+})

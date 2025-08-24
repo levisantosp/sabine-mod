@@ -1,31 +1,46 @@
-import { Blacklist, BlacklistSchemaInterface } from "../database"
-import { createCommand } from "../structures"
+import createCommand from "../structures/command/createCommand.ts"
 
 export default createCommand({
   name: "checkban",
   onlyMod: true,
-  async run({ ctx, getUser }) {
+  async run({ ctx, getUser, client }) {
     const args = {
       user: async() => {
-        const u = await getUser(ctx.args[1]);
-        if(!u) return ctx.send("Enter a valid user ID.");
-        const blacklist = await Blacklist.findById("blacklist") as BlacklistSchemaInterface;
-        const ban = blacklist.users.find(user => user.id === u.id);
-        if(!ban) return ctx.send(`\`${u.tag}\` is not banned from the bot.`);
-        ctx.send(`\`${u.tag}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${ban.when}:f> | <t:${ban.when}:R>\n**Ends at:** ${ban.endsAt === Infinity ? "Never" : `<t:${ban.endsAt}:F> | <t:${ban.endsAt}:R>`}`);
+        const u = await getUser(ctx.args[1])
+        if(!u) return await ctx.send("Enter a valid user ID.")
+        const ban = await client.prisma.blacklist.findUnique({
+          where: {
+            id: u.id
+          }
+        })
+        if(!ban) return await ctx.send(`\`${u.tag}\` is not banned from the bot.`)
+        let timestamp: string | undefined
+        if(ban.endsAt) {
+          timestamp = (ban.endsAt.getTime() / 1000).toFixed(0)
+        }
+        const when = (ban.when.getTime() / 1000).toFixed(0)
+        await ctx.send(`\`${u.tag}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${when}:f> | <t:${when}:R>\n**Ends at:** ${!timestamp ? "Never" : `<t:${timestamp}:F> | <t:${timestamp}:R>`}`)
       },
       guild: async() => {
-        if(!ctx.args[1]) return ctx.send("Enter a valid guild ID.");
-        const blacklist = await Blacklist.findById("blacklist") as BlacklistSchemaInterface;
-        const ban = blacklist.guilds.find(guild => guild.id === ctx.args[1]);
-        if(!ban) return ctx.send(`\`${ctx.args[1]}\` is not banned from the bot.`);
-        ctx.send(`\`${ban.name}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${ban.when}:f> | <t:${ban.when}:R>\n**Ends at:** ${ban.endsAt === Infinity ? "Never" : `<t:${ban.endsAt}:F> | <t:${ban.endsAt}:R>`}`);
+        if(!ctx.args[1]) return await ctx.send("Enter a valid guild ID.")
+        const ban = await client.prisma.blacklist.findUnique({
+          where: {
+            id: ctx.args[1]
+          }
+        })
+        if(!ban) return await ctx.send(`\`${ctx.args[1]}\` is not banned from the bot.`)
+        let timestamp: string | undefined
+        if(ban.endsAt) {
+          timestamp = (ban.endsAt.getTime() / 1000).toFixed(0)
+        }
+        const when = (ban.when.getTime() / 1000).toFixed(0)
+        await ctx.send(`\`${ban.name}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${when}:f> | <t:${when}:R>\n**Ends at:** ${!timestamp ? "Never" : `<t:${timestamp}:F> | <t:${timestamp}:R>`}`)
       }
     }
     if(!ctx.args[0] || !Object.keys(args).some(key => key === ctx.args[0])) {
-      ctx.send(`Missing arguments! Try \`${process.env.PREFIX}checkban user [id]\` or \`${process.env.PREFIX}checkban guild [id]\``);
-      return;
+      await ctx.send(`Missing arguments! Try \`${process.env.PREFIX}checkban user [id]\` or \`${process.env.PREFIX}checkban guild [id]\``)
+      return
     }
-    args[ctx.args[0] as "user" | "guild"]();
+    args[ctx.args[0] as "user" | "guild"]()
   }
-});
+})

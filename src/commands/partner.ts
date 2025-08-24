@@ -1,5 +1,5 @@
-import { Guild, GuildSchemaInterface } from "../database"
-import { createCommand } from "../structures"
+import { SabineGuild } from "../database/index.ts"
+import createCommand from "../structures/command/createCommand.ts"
 
 export default createCommand({
   name: "partner",
@@ -7,29 +7,26 @@ export default createCommand({
   async run({ ctx }) {
     const args = {
       add: async() => {
-        const guild = await Guild.findById(ctx.args[1]) as GuildSchemaInterface | null;
+        const guild = await SabineGuild.fetch(ctx.args[1])
         if(!guild) {
-          ctx.send("This guild does not exists in database");
-          return;
+          await ctx.send("This guild does not exists in database")
+          return
         }
-        guild.partner = true;
-        guild.invite = ctx.args[2];
-        await guild.save();
-        ctx.send("Guild added!");
+        guild.partner = true
+        guild.invite = ctx.args[2]
+        await guild.save()
+        await ctx.send("Guild added!")
       },
       remove: async() => {
-        const guild = await Guild.findById(ctx.args[1]) as GuildSchemaInterface | null;
+        const guild = await SabineGuild.fetch(ctx.args[1])
         if(!guild) {
-          ctx.send("This guild does not exists in database");
-          return;
+          await ctx.send("This guild does not exists in database")
+          return
         }
-        await guild.updateOne({
-          $unset: {
-            partner: "",
-            invite: ""
-          }
-        });
-        ctx.send("Guild removed!");
+        guild.partner = null
+        guild.invite = null
+        await guild.save()
+        await ctx.send("Guild removed!")
       }
     }
     if(
@@ -41,9 +38,9 @@ export default createCommand({
       ||
       !ctx.args[2]
     ) {
-      ctx.send(`Invalid argument! Use \`${process.env.PREFIX}partner add/remove [guild_id] [guild_invite]\``);
-      return;
+      await ctx.send(`Invalid argument! Use \`${process.env.PREFIX}partner add/remove [guild_id] [guild_invite]\``)
+      return
     }
-    await args[ctx.args[0] as "add" | "remove"]();
+    await args[ctx.args[0] as "add" | "remove"]()
   }
-});
+})

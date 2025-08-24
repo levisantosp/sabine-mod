@@ -1,32 +1,32 @@
-import { CommandInteraction, ComponentInteraction, EditInteractionContent, File, Guild, InitialInteractionContent, Message, ModalSubmitInteraction, TextChannel } from "oceanic.js"
-import App from "../client/App"
-import { GuildSchemaInterface, UserSchemaInterface } from "../../database"
+import { type File, Guild, type InteractionContent, Message, TextChannel } from "oceanic.js"
+import App from "../client/App.ts"
+import { SabineGuild, SabineUser } from "../../database/index.ts"
 
 type Database = {
-  user: UserSchemaInterface,
-  guild: GuildSchemaInterface
+  user: SabineUser,
+  guild: SabineGuild
 }
 type CommandContextOptions = {
-  client: App;
-  guild: Guild;
-  message: Message<TextChannel>;
-  db: Database;
-  args: string[];
+  client: App
+  guild: Guild
+  message: Message<TextChannel>
+  db: Database
+  args: string[]
 }
 export default class CommandContext {
-  public client: App;
-  public guild: Guild;
-  public message: Message<TextChannel>;
-  public db: Database;
-  public args: string[];
+  public client: App
+  public guild: Guild
+  public message: Message<TextChannel>
+  public db: Database
+  public args: string[]
   public constructor(options: CommandContextOptions) {
-    this.client = options.client;
-    this.guild = options.guild;
-    this.message = options.message;
-    this.db = options.db;
-    this.args = options.args;
+    this.client = options.client
+    this.guild = options.guild
+    this.message = options.message
+    this.db = options.db
+    this.args = options.args
   }
-  public async send(content: string | InitialInteractionContent, files?: File[]) {
+  public async send(content: string | InteractionContent, files?: File[]) {
     switch(typeof content) {
       case "string": {
         if(files) {
@@ -35,22 +35,22 @@ export default class CommandContext {
               content,
               files
             }
-          );
+          )
         }
         else {
           return this.message.channel.createMessage(
             {
               content: content
             }
-          );
+          )
         }
       }
       case "object": {
         if(files) {
-          return this.message.channel.createMessage(Object.assign(content, { files }));
+          return this.message.channel.createMessage(Object.assign(content, { files }))
         }
         else {
-          return this.message.channel.createMessage(content);
+          return this.message.channel.createMessage(content)
         }
       }
     }

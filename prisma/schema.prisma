@@ -1,0 +1,314 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+type PredictionTeams {
+  name   String
+  score  String
+  winner Boolean?
+}
+
+enum PredictionStatus {
+  pending
+  correct
+  wrong
+}
+
+type Prediction {
+  match  String
+  teams  PredictionTeams[]
+  status PredictionStatus
+  bet    BigInt?
+  odd    BigInt?
+  when   DateTime          @default(now())
+}
+
+enum Language {
+  pt
+  en
+}
+
+enum PremiumType {
+  PREMIUM
+}
+
+type Premium {
+  type      PremiumType
+  expiresAt DateTime
+}
+
+type Roster {
+  active  String[] @default([])
+  reserve String[] @default([])
+}
+
+type Team {
+  name String?
+  tag  String?
+}
+
+type CarrerTeam {
+  user  String
+  score Int
+}
+
+type Event {
+  name     String
+  channel1 String
+  channel2 String
+}
+
+type TBDMatch {
+  id      String
+  channel String
+}
+
+type LiveMatchTeam {
+  name  String
+  score String
+}
+
+type LiveMatchTour {
+  name      String
+  full_name String?
+  image     String?
+}
+
+type LiveMatch {
+  teams      LiveMatchTeam[]
+  currentMap String?
+  score1     String?
+  score2     String?
+  id         String
+  url        String?
+  stage      String?
+  tournament LiveMatchTour
+}
+
+enum KeyType {
+  BOOSTER
+  PREMIUM
+}
+
+type Key {
+  type      KeyType
+  expiresAt DateTime?
+  id        String
+}
+
+type BlacklistProps {
+  id     String
+  name   String?
+  when   DateTime @default(now())
+  reason String
+  endsAt DateTime
+}
+
+type Content {
+  lang String
+  text String
+}
+
+enum TransactionType {
+  CLAIM_PLAYER_BY_CLAIM_COMMAND
+  CLAIM_PLAYER_BY_COMMAND
+  SELL_PLAYER
+  TRADE_PLAYER
+  SIGN_PLAYER
+}
+
+type Transaction {
+  type   TransactionType
+  player String
+  when   DateTime        @default(now())
+  price  BigInt?         @db.Long
+  user   String?
+}
+
+enum Packet {
+  IRON
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  ASCENDANT
+  IMMORTAL
+  RADIANT
+}
+
+enum BlacklistType {
+  GUILD
+  USER
+}
+
+model blacklist {
+  id     String        @id @map("_id")
+  type   BlacklistType
+  name   String?
+  when   DateTime      @default(now())
+  reason String
+  endsAt DateTime?
+}
+
+model guilds {
+  id                        String      @id @map("_id")
+  lang                      Language    @default(en)
+  valorant_events           Event[]
+  valorant_resend_time      DateTime?
+  valorant_matches          String[]    @default([])
+  valorant_tbd_matches      TBDMatch[]
+  valorant_news_channel     String?
+  valorant_livefeed_channel String?
+  valorant_live_matches     LiveMatch[]
+  lol_events                Event[]
+  lol_resend_time           DateTime?
+  lol_matches               String[]    @default([])
+  lol_tbd_matches           TBDMatch[]
+  lol_news_channel          String?
+  lol_livefeed_channel      String?
+  lol_live_matches          LiveMatch[]
+  key                       Key?
+  tournamentsLength         Int         @default(5)
+  partner                   Boolean?
+  invite                    String?
+}
+
+model keys {
+  id        String    @id @map("_id")
+  active    Boolean   @default(false)
+  activeIn  String[]
+  expiresAt DateTime?
+  type      KeyType
+  user      String
+}
+
+model users {
+  id                       String         @id @map("_id")
+  predictions              predictions[]
+  correct_predictions      Int            @default(0) @db.Int
+  wrong_predictions        Int            @default(0) @db.Int
+  lang                     Language       @default(en)
+  plan                     Premium?
+  warned                   Boolean?
+  roster                   Roster?
+  coins                    BigInt         @default(0)
+  team                     Team?
+  ranked_wins              Int            @default(0) @db.Int
+  unranked_wins            Int            @default(0) @db.Int
+  swiftplay_wins           Int            @default(0) @db.Int
+  ranked_swiftplay_wins    Int            @default(0) @db.Int
+  ranked_defeats           Int            @default(0) @db.Int
+  unranked_defeats         Int            @default(0) @db.Int
+  swiftplay_defeats        Int            @default(0) @db.Int
+  ranked_swiftplay_defeats Int            @default(0) @db.Int
+  daily_time               DateTime?
+  claim_time               DateTime?
+  warn                     Boolean        @default(false)
+  pity                     Int            @default(0) @db.Int
+  claims                   Int            @default(0) @db.Int
+  rank_rating              Int            @default(0) @db.Int
+  fates                    Int            @default(0) @db.Int
+  elo                      Int            @default(0) @db.Int
+  // UNRANKED 0
+  // IRON 1
+  // IRON 2
+  // IRON 3
+  // BRONZE 4
+  // BRONZE 5
+  // BRONZE 6
+  // SILVER 7
+  // SILVER 8
+  // SILVER 9
+  // GOLD 10
+  // GOLD 11
+  // GOLD 12
+  // PLATINUM 13
+  // PLATINUM 14
+  // PLATINUM 15
+  // DIAMOND 16
+  // DIAMOND 17
+  // DIAMOND 18
+  // ASCENDANT 19
+  // ASCENDANT 20
+  // ASCENDANT 21
+  // IMMORTAL 22
+  // IMMORTAL 23
+  // IMMORTAL 24
+  // RADIANT 25
+  elo_rating               Int            @default(50) @db.Int
+  remind                   Boolean        @default(false)
+  remindIn                 String?
+  reminded                 Boolean        @default(true)
+  packets                  Packet[]
+  transactions             transactions[]
+  career                   matches[]
+  trade_time               DateTime?
+
+  @@index([coins, correct_predictions, ranked_swiftplay_wins, ranked_wins, unranked_wins, swiftplay_wins])
+}
+
+enum Game {
+  valorant
+  lol
+}
+
+model predictions {
+  id     String            @id @default(auto()) @map("_id") @db.ObjectId
+  match  String
+  game   Game
+  teams  PredictionTeams[]
+  status PredictionStatus
+  bet    BigInt?
+  odd    BigInt?
+  when   DateTime          @default(now())
+  user   users             @relation(fields: [userId], references: [id])
+  userId String
+
+  @@index([userId, game, id])
+}
+
+model transactions {
+  id     String          @id @default(auto()) @map("_id") @db.ObjectId
+  type   TransactionType
+  player String
+  when   DateTime        @default(now())
+  price  BigInt?         @db.Long
+  user   users           @relation(fields: [userId], references: [id])
+  userId String
+  who    String?
+
+  @@index([userId])
+}
+
+enum MatchMode {
+  RANKED
+  UNRANKED
+  RANKED_SWIFTPLAY
+  SWIFTPLAY
+  TOURNAMENT
+}
+
+model matches {
+  id     String       @id @default(auto()) @map("_id") @db.ObjectId
+  mode   MatchMode
+  winner Boolean
+  teams  CarrerTeam[]
+  points Int?         @db.Int
+  user   users        @relation(fields: [userId], references: [id])
+  userId String
+  when   DateTime     @default(now())
+
+  @@index([userId])
+}
+
+model updates {
+  id           String    @id @map("_id")
+  published_at Int       @default(0)
+  content      Content[]
+}

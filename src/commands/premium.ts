@@ -1,10 +1,12 @@
-import { createCommand, EmbedBuilder, SelectMenuBuilder } from "../structures"
+import EmbedBuilder from "../structures/builders/EmbedBuilder.ts"
+import SelectMenuBuilder from "../structures/builders/SelectMenuBuilder.ts"
+import createCommand from "../structures/command/createCommand.ts"
 
 export default createCommand({
   name: "premium",
   onlyDev: true,
   async run({ ctx }) {
-    await ctx.message.delete();
+    await ctx.message.delete()
     const menu = new SelectMenuBuilder()
     .setPlaceholder("Select a plan")
     .setOptions(
@@ -26,7 +28,7 @@ export default createCommand({
     )
     .setCustomId("premium")
     const embed = new EmbedBuilder()
-    .setTitle("BECOME A PREMIUM USER")
+    .setTitle("PREMIUM")
     .setDesc("Use this panel to purchase one of our plans and gain exclusive advantages for your server!")
     .setFields(
       {
@@ -35,13 +37,13 @@ export default createCommand({
       },
       {
         name: "Premium",
-        value: "- Key Premium generated automatically\n  - Can be activated on up to 2 different servers\n  - You can add up to 20 tournaments\n  - News feature released\n  - Feature to follow live matches released"
+        value: "- Key Premium generated automatically\n  - Can be activated on up to **2 different servers**\n  - You can add up to 20 tournaments\n  - News feature unlocked\n  - Live matches feature unlocked\n- Bonus coins and fates in `/daily`\n- Cooldown for `/claim` reduced to **5 minutes**"
       },
       {
         name: "Payment methods",
         value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:paypal:1313901126927650879> PayPal"
       }
-    );
-    ctx.send(menu.build(embed.build()));
+    )
+    await ctx.send(menu.build(embed.build()))
   }
-});
+})

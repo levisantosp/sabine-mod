@@ -4,9 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: sabine-mod
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
+    container_name: sabine-mod
+    restart: unless-stopped
     ports:
       - "3000:3000"

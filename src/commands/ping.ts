@@ -1,8 +1,8 @@
-import { createCommand } from "../structures"
+import createCommand from "../structures/command/createCommand.ts"
 
 export default createCommand({
   name: "ping",
   async run({ ctx }) {
-    ctx.send(`Pong! \`${ctx.guild.shard.latency}ms\``);
+    await ctx.send(`Pong! \`${ctx.guild.shard.latency}ms\``)
   }
-});
+})
