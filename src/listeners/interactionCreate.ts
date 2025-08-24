@@ -14,7 +14,8 @@ export default createListener({
   async run(client, interaction) {
     if(interaction instanceof ComponentInteraction) {
       if(!interaction.guild || !interaction.guildID || !interaction.member || !interaction.channel) return
-      const args = interaction.data.customID.split("")
+      const args = interaction.data.customID.split(";")
+      console.log(args)
       if(interaction.data.customID === "ticket") {
         await interaction.defer(64)
         const category = interaction.guild.channels.get("1277285123070361673") as CategoryChannel
