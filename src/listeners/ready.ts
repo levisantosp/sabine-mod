@@ -123,7 +123,7 @@ export default createListener({
       const guild = client.guilds.get("1233965003850125433")!
       const channels = guild.channels.filter(c => ["1313902950426345492", "1313588710637568030"].includes(c.id)) as TextChannel[]
       for(const channel of channels) {
-        const threads = channel.threads.filter(t => Date.now() - new Date(t.createdAt).getTime() >= 1.2e+6)
+        const threads = channel.threads.filter(t => Date.now() - new Date(t.createdAt).getTime() >= 1000 * 60 * 45)
         for(const thread of threads) await thread.delete()
       }
     }

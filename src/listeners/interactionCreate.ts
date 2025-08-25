@@ -1,13 +1,13 @@
 import { CategoryChannel, ComponentInteraction, Constants, TextChannel } from "oceanic.js"
 import transcript from "oceanic-transcripts"
-// import paypal from "@paypal/checkout-server-sdk"
 import { MercadoPagoConfig, Preference } from "mercadopago"
 import createListener from "../structures/client/createListener.ts"
 import EmbedBuilder from "../structures/builders/EmbedBuilder.ts"
 import ButtonBuilder from "../structures/builders/ButtonBuilder.ts"
-const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_TOKEN })
-// const sandbox = new paypal.core.SandboxEnvironment(process.env.PAYPAL_CLIENT_ID, process.env.PAYPAL_TOKEN)
-// const paypalClient = new paypal.core.PayPalHttpClient(sandbox)
+import Stripe from "stripe"
+
+const mercadopago = new MercadoPagoConfig({ accessToken: process.env.MP_TOKEN })
+const stripe = new Stripe(process.env.STRIPE_TOKEN)
 
 export default createListener({
   name: "interactionCreate",
@@ -15,7 +15,6 @@ export default createListener({
     if(interaction instanceof ComponentInteraction) {
       if(!interaction.guild || !interaction.guildID || !interaction.member || !interaction.channel) return
       const args = interaction.data.customID.split(";")
-      console.log(args)
       if(interaction.data.customID === "ticket") {
         await interaction.defer(64)
         const category = interaction.guild.channels.get("1277285123070361673") as CategoryChannel
@@ -140,7 +139,7 @@ export default createListener({
               type: 12,
               invitable: false
             })
-            const preference = new Preference(mpClient)
+            const preference = new Preference(mercadopago)
             const res = await preference.create(
               {
                 body: {
@@ -154,13 +153,13 @@ export default createListener({
                     }
                   ],
                   notification_url: process.env.MP_WEBHOOK_URL,
-                  external_reference: `${thread.id}${interaction.user.id}PREMIUM`,
+                  external_reference: `${thread.id};${interaction.user.id};PREMIUM`,
                   date_of_expiration: new Date(Date.now() + 600000).toISOString()
                 }
               }
             )
             if(!res.init_point) {
-              thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` })
+              await thread.createMessage({ content: `Não foi possível gerar o link de pagamento e a sua compra não pôde ser concluída.\nO tópico será excluído <t:${((Date.now() + 10000) / 1000).toFixed(0)}:R>` })
               setTimeout(() => thread.delete(), 10000)
               return
             }
@@ -185,59 +184,58 @@ export default createListener({
           break
           case "premium_usd": {
             await interaction.createMessage({
-              content: "Payments via <:paypal:1313901126927650879>ayPal are not currently automated. Create a ticket in https://discord.com/channels/1233965003850125433/1277285687074357313 and say you want to buy Premium via <:paypal:1313901126927650879>ayPal!",
+              content: "<a:carregando:809221866434199634> Getting everything ready for your purchase...",
               flags: 64
             })
-            // await interaction.createMessage({
-            //   content: "<a:carregando:809221866434199634> Preparing for your purchase...",
-            //   flags: 64
-            // })
-            // const thread = await (interaction.channel as TextChannel)
-            // .startThreadWithoutMessage({
-            //   name: `USD Premium (${interaction.user.id})`,
-            //   type: 12,
-            //   invitable: false
-            // })
-            // await thread.addMember(interaction.member.id)
-            // const req = new paypal.orders.OrdersCreateRequest()
-            // .requestBody({
-            //   intent: "CAPTURE",
-            //   purchase_units: [
-            //     {
-            //       amount: {
-            //         currency_code: "BRL",
-            //         value: "2.99"
-            //       },
-            //       reference_id: `${thread.id}${interaction.user.id}PREMIUM`
-            //     }
-            //   ],
-            //   application_context: {
-            //     return_url: process.env.PAYPAL_WEBHOOK_URL,
-            //     cancel_url: process.env.PAYPAL_WEBHOOK_URL
-            //   }
-            // })
-            // const res = await paypalClient.execute(req)
-            // const link = res.result.links.find((link: any) => link.rel === "approve")
-            // if(!link || !link.href) {
-            //   thread.createMessage({ content: "The payment link could not be generated and your purchase could not be completed." })
-            //   return
-            // }
-            // const embed = new EmbedBuilder()
-            // .setTitle("Premium Plan")
-            // .setDesc(`Click on the button below to be redirected to the PayPal <:paypal:1313901126927650879>ayment page.`)
-            // const button = new ButtonBuilder()
-            // .setStyle("link")
-            // .setLabel("Payment link")
-            // .setURL(link.href)
-            // await thread.createMessage(embed.build({
-            //   components: [
-            //     {
-            //       type: 1,
-            //       components: [button]
-            //     }
-            //   ]
-            // }))
-            // await interaction.editOriginal({ content: `Environment created! Continue your purchase in ${thread.mention}` })
+            const thread = await (interaction.channel as TextChannel)
+            .startThreadWithoutMessage({
+              name: `USD Premium (${interaction.user.id})`,
+              type: 12,
+              invitable: false
+            })
+            await thread.addMember(interaction.member.id)
+            const payment = await stripe.checkout.sessions.create({
+              payment_method_types: ["card"],
+              line_items: [
+                {
+                  price_data: {
+                    currency: "usd",
+                    product_data: {
+                      name: "Premium - Sabine Payments"
+                    },
+                    unit_amount: 299
+                  },
+                  quantity: 1
+                }
+              ],
+              mode: "payment",
+              metadata: {
+                thread: thread.id,
+                user: interaction.user.id,
+                type: "PREMIUM"
+              },
+              success_url: process.env.STRIPE_WEBHOOK_URL
+            })
+            if(!payment.url) {
+              await thread.createMessage({ content: "The payment link could not be generated and your purchase could not be completed." })
+              return
+            }
+            const embed = new EmbedBuilder()
+            .setTitle("Premium Plan")
+            .setDesc(`Click on the button below to be redirected to the <:stripe:1409597720313987204> Stripe payment page.\nYou must complete the payment <t:${((Date.now() + (30 * 60 * 1000)) / 1000).toFixed(0)}:R>, or the link will expire.`)
+            const button = new ButtonBuilder()
+            .setStyle("link")
+            .setLabel("Payment link")
+            .setURL(payment.url)
+            await thread.createMessage(embed.build({
+              components: [
+                {
+                  type: 1,
+                  components: [button]
+                }
+              ]
+            }))
+            await interaction.editOriginal({ content: `Everything is ready! Continue your purchase in ${thread.mention}` })
           }
         }
       }

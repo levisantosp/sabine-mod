@@ -21,7 +21,7 @@ export default createCommand({
         description: "Compre o Premium por apenas R$5,99 durante 30 dias!"
       },
       {
-        label: "Premium | PayPal",
+        label: "Premium | Stripe, credit card",
         value: "premium_usd",
         description: "Buy Premium for just $2.99 for 30 days!"
       }
@@ -41,7 +41,7 @@ export default createCommand({
       },
       {
         name: "Payment methods",
-        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:paypal:1313901126927650879> PayPal"
+        value: "- <:mercadopago:1313901326744293427> Mercado Pago\n- <:stripe:1409597720313987204> Stripe\n- <:credit_card:1409598374000463913> Card"
       }
     )
     await ctx.send(menu.build(embed.build()))
