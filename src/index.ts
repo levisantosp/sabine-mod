@@ -35,7 +35,7 @@ const webhook_route: FastifyPluginAsyncTypebox = async(fastify, opts) => {
           }
         }
       ).then(res => res.json())
-      const args = details.external_reference.split("")
+      const args = details.external_reference.split(";")
       if(details.status === "approved" && !cache.has(details.external_reference)) {
         cache.add(details.external_reference)
         const user = await SabineUser.fetch(args[1]) || new SabineUser(args[1])
