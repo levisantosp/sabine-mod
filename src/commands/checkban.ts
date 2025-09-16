@@ -15,8 +15,8 @@ export default createCommand({
         })
         if(!ban) return await ctx.send(`\`${u.tag}\` is not banned from the bot.`)
         let timestamp: string | undefined
-        if(ban.endsAt) {
-          timestamp = (ban.endsAt.getTime() / 1000).toFixed(0)
+        if(ban.ends_at) {
+          timestamp = (ban.ends_at.getTime() / 1000).toFixed(0)
         }
         const when = (ban.when.getTime() / 1000).toFixed(0)
         await ctx.send(`\`${u.tag}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${when}:f> | <t:${when}:R>\n**Ends at:** ${!timestamp ? "Never" : `<t:${timestamp}:F> | <t:${timestamp}:R>`}`)
@@ -30,8 +30,8 @@ export default createCommand({
         })
         if(!ban) return await ctx.send(`\`${ctx.args[1]}\` is not banned from the bot.`)
         let timestamp: string | undefined
-        if(ban.endsAt) {
-          timestamp = (ban.endsAt.getTime() / 1000).toFixed(0)
+        if(ban.ends_at) {
+          timestamp = (ban.ends_at.getTime() / 1000).toFixed(0)
         }
         const when = (ban.when.getTime() / 1000).toFixed(0)
         await ctx.send(`\`${ban.name}\` is banned from the bot.\n**Reason:** \`${ban.reason}\`\n**Date:** <t:${when}:f> | <t:${when}:R>\n**Ends at:** ${!timestamp ? "Never" : `<t:${timestamp}:F> | <t:${timestamp}:R>`}`)

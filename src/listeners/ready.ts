@@ -1,8 +1,6 @@
 import { TextChannel } from "oceanic.js"
-import ms from "enhanced-ms"
 import createListener from "../structures/client/createListener.ts"
 import Logger from "../structures/util/Logger.ts"
-import { SabineGuild, SabineUser } from "../database/index.ts"
 
 export default createListener({
   name: "ready",
@@ -11,15 +9,16 @@ export default createListener({
     const removeUserFromBlacklist = async() => {
       const blacklist = await client.prisma.blacklist.findMany({
         where: {
-          endsAt: {
+          ends_at: {
             not: null
           },
           type: "USER"
         }
       })
+      if(!blacklist.length) return
       for(const user of blacklist) {
-        if(!user.endsAt) continue
-        if(user.endsAt < new Date()) {
+        if(!user.ends_at) continue
+        if(user.ends_at < new Date()) {
           await client.prisma.blacklist.delete({
             where: {
               id: user.id,
@@ -34,15 +33,16 @@ export default createListener({
     const removeGuildFromBlacklist = async() => {
       const blacklist = await client.prisma.blacklist.findMany({
         where: {
-          endsAt: {
+          ends_at: {
             not: null
           },
           type: "GUILD"
         }
       })
+      if(!blacklist.length) return
       for(const guild of blacklist) {
-        if(!guild.endsAt) continue
-        if(guild.endsAt < new Date()) {
+        if(!guild.ends_at) continue
+        if(guild.ends_at < new Date()) {
           await client.prisma.blacklist.delete({
             where: {
               id: guild.id,
@@ -55,61 +55,58 @@ export default createListener({
       }
     }
     const removePremium = async() => {
-      const users = await client.prisma.users.findMany({
-        where: {
-          plan: {
-            isNot: null
-          }
+      const users = await client.prisma.user.findMany({
+        include: {
+          premium: true
         }
       })
       if(!users.length) return
       for(const user of users) {
-        if(!user.plan) continue
-        if(user.plan.expiresAt > new Date()) continue
+        if(!user.premium) continue
+        if(user.premium.expires_at > new Date()) continue
         const member = client.guilds.get("1233965003850125433")!.members.get(user.id)
         if(member) {
           await member.removeRole("1314272663316856863")
           member.user.createDM().then(dm => dm.createMessage({
-            content: `Your premium has expired! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
+            content: `Your premium has expired! If you want to renew your premium, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a premium!`
           }))
           .catch()
           user.warned = false
         }
-        await client.prisma.users.update({
+        await client.prisma.user.update({
           where: {
             id: user.id
           },
           data: {
-            plan: {
-              unset: true
+            premium: {
+              delete: {
+                userId: user.id
+              }
             }
           }
         })
       }
     }
     const sendPremiumWarn = async() => {
-      const users = await client.prisma.users.findMany({
-        where: {
-          plan: {
-            isNot: null
-          },
-          warned: false
+      const users = await client.prisma.user.findMany({
+        include: {
+          premium: true
         }
       })
       for(const user of users) {
         if(user.warned) continue
-        if(!user.plan) continue
+        if(!user.premium) continue
         user.warned = true
         const member = client.guilds.get("1233965003850125433")!.members.get(user.id)
-        if((user.plan.expiresAt.getTime() - Date.now()) <= 2.592e+8) {
+        if((user.premium.expires_at.getTime() - Date.now()) <= 2.592e+8) {
           if(member) {
             member.user.createDM().then(dm => dm.createMessage({
-              content: `Your premium will expires <t:${(user.plan!.expiresAt.getTime() / 1000).toFixed(0)}:R>! If you want to renew your plan, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a plan!`
+              content: `Your premium will expires <t:${(user.premium!.expires_at.getTime() / 1000).toFixed(0)}:R>! If you want to renew your premium, go to https://canary.discord.com/channels/1233965003850125433/1313902950426345492 and select a premium!`
             }))
             .catch(() => {})
           }
         }
-        await client.prisma.users.update({
+        await client.prisma.user.update({
           where: {
             id: user.id
           },
@@ -128,51 +125,66 @@ export default createListener({
       }
     }
     const deleteKeys = async() => {
-      const keys = await client.prisma.keys.findMany({
+      const keysToDelete = await client.prisma.key.findMany({
         where: {
-          expiresAt: {
+          expires_at: {
             lte: new Date()
           },
           type: "PREMIUM"
+        },
+        select: {
+          id: true
         }
       })
-      for(const key of keys) {
-        if(key.activeIn.length) {
-          for(const gid of key.activeIn) {
-            const guild = await SabineGuild.fetch(gid)
-            if(!guild || !guild.key) continue
-            guild.tournamentsLength = 5
-            guild.key = null
-            await guild.save()
-          }
-        }
-        await client.prisma.keys.delete({
+      if(!keysToDelete.length) return
+      await client.prisma.$transaction([
+        client.prisma.guildKey.deleteMany({
           where: {
-            id: key.id
+            keyId: {
+              in: keysToDelete.map(key => key.id)
+            }
+          }
+        }),
+        client.prisma.key.deleteMany({
+          where: {
+            id: {
+              in: keysToDelete.map(key => key.id)
+            }
           }
         })
-      }
+      ])
     }
     const verifyKeyBooster = async() => {
-      const keys = await client.prisma.keys.findMany({
+      const keys = await client.prisma.key.findMany({
         where: {
           type: "BOOSTER"
         }
       })
+      if(!keys.length) return
+      const keysToDelete: string[] = []
       for(const key of keys) {
         const member = client.guilds.get("1233965003850125433")!.members.get(key.user)
         if(!member || (member && !member.premiumSince)) {
-          const guild = await SabineGuild.fetch(key.activeIn[0])
-          if(!guild || !guild.key) continue
-          guild.key = null
-          await guild.save()
+          keysToDelete.push(key.id)
         }
-        await client.prisma.keys.delete({
+      }
+      if(!keysToDelete.length) return
+      await client.prisma.$transaction([
+        client.prisma.guildKey.deleteMany({
           where: {
-            id: key.id
+            keyId: {
+              in: keysToDelete
+            }
+          }
+        }),
+        client.prisma.key.deleteMany({
+          where: {
+            id: {
+              in: keysToDelete
+            }
           }
         })
-      }
+      ])
     }
     const verifyPartners = async() => {
       const channel = client.getChannel("1346170715165950086") as TextChannel
@@ -180,7 +192,7 @@ export default createListener({
         filter: (message) => message.author.id === client.user.id
       }))[0]
       if(!message) {
-        const guilds = await client.prisma.guilds.findMany({
+        const guilds = await client.prisma.guild.findMany({
           where: {
             partner: true,
             invite: {
@@ -196,7 +208,7 @@ export default createListener({
         await channel.createMessage({ content })
       }
       else {
-        const guilds = await client.prisma.guilds.findMany({
+        const guilds = await client.prisma.guild.findMany({
           where: {
             partner: true,
             invite: {
@@ -208,7 +220,7 @@ export default createListener({
         for(const guild of guilds) {
           content += `- ${guild.invite}\n`
         }
-        message.edit({ content })
+        await message.edit({ content })
       }
     }
     const runTasks = async() => {

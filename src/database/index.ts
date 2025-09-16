@@ -1,32 +1,32 @@
-import { $Enums, type guilds, Prisma, PrismaClient, type users } from "@prisma/client"
-import { calcPlayerOvr, getPlayer } from "players"
+import {
+  $Enums,
+  type Event,
+  type Guild,
+  type GuildKey,
+  type Key,
+  type LiveMessage,
+  type Premium,
+  PrismaClient,
+  type TBDMatch,
+  type User
+} from "@prisma/client"
 import { client } from "../index.ts"
 import EmbedBuilder from "../structures/builders/EmbedBuilder.ts"
 import { TextChannel } from "oceanic.js"
 
 const prisma = new PrismaClient()
-type PredictionTeam = {
-  name: string
-  score: string,
-  winner: boolean
-}
-type Prediction = {
-  match: string
-  teams: PredictionTeam[]
-  status: "pending" | "correct" | "wrong"
-  bet: bigint | null
-  odd: bigint | null
-}
-export class SabineUser implements users {
+export class SabineUser implements User {
   public id: string
+  public created_at: Date = new Date()
   public correct_predictions: number = 0
-  public wrong_predictions: number = 0
+  public incorrect_predictions: number = 0
   public lang: $Enums.Language = "en"
-  public plan: { type: $Enums.PremiumType; expiresAt: Date; } | null = null
-  public warned: boolean | null = null
-  public roster: { active: string[]; reserve: string[]; } | null = { active: [], reserve: [] }
+  public premium: Premium | null = null
+  public active_players: string[] = []
+  public reserve_players: string[] = []
   public coins: bigint = 0n
-  public team: { name: string | null; tag: string | null; } | null = null
+  public team_name: string | null = null
+  public team_tag: string | null = null
   public ranked_wins: number = 0
   public unranked_wins: number = 0
   public swiftplay_wins: number = 0
@@ -37,205 +37,102 @@ export class SabineUser implements users {
   public ranked_swiftplay_defeats: number = 0
   public daily_time: Date | null = null
   public claim_time: Date | null = null
-  public warn: boolean = true
+  public trade_time: Date | null = null
+  public warn: boolean = false
   public pity: number = 0
   public claims: number = 0
-  public rank_rating: number = 0
   public fates: number = 0
+  public rank_rating: number = 50
   public elo: number = 0
-  public elo_rating: number = 50
-  public remind: boolean = false
-  public remindIn: string | null = null
+  public remind: boolean | null = null
+  public remind_in: string | null = null
   public reminded: boolean = true
-  public packets: $Enums.Packet[] = []
-  public trade_time: Date | null = null
+  public boxes: $Enums.Box[] = []
+  public warned: boolean | null = null
   public constructor(id: string) {
     this.id = id
-    if(!this.roster) {
-      this.roster = { active: [], reserve: [] }
-    }
-  }
-  private async fetch(id: string) {
-    const data = await prisma.users.findUnique({ where: { id } })
-    if(!data) return data
-    let user = new SabineUser(data.id)
-    user = Object.assign(user, data)
-    if(!user.roster) {
-      user.roster = {
-        active: [],
-        reserve: []
-      }
-    }
-    return user
   }
   public async save() {
-    const data: Partial<users> = {}
+    const data: Partial<User> = {}
     for(const key in this) {
-      if(typeof this[key] === "function" || key === "id") continue
+      if(
+        typeof this[key] === "function" ||
+        key === "id" ||
+        this[key] === null ||
+        this[key] === "premium"
+      ) continue
       (data as any)[key] = this[key]
     }
-    return await prisma.users.upsert({
-      where: { id: this.id },
-      update: data,
-      create: { id: this.id, ...data } as Prisma.usersCreateInput
-    })
+    const { premium, ...cleanData } = data as any
+    if(premium) {
+      return await prisma.user.upsert({
+        where: { id: this.id },
+        update: cleanData,
+        create: { id: this.id, ...cleanData }
+      })
+    }
+    else {
+      return await prisma.user.upsert({
+        where: { id: this.id },
+        update: cleanData,
+        create: { id: this.id, ...cleanData }
+      })
+    }
   }
   public static async fetch(id: string) {
-    const data = await prisma.users.findUnique({ where: { id } })
+    const data = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        premium: true
+      }
+    })
     if(!data) return data
     let user = new SabineUser(data.id)
     user = Object.assign(user, data)
-    if(!user.roster) {
-      user.roster = {
-        active: [],
-        reserve: []
-      }
-    }
-    return user
-  }
-  public async addPrediction(game: "valorant" | "lol", prediction: Prediction) {
-    const user = await this.fetch(this.id) ?? this
-    await prisma.predictions.create({
-      data: {
-        ...prediction,
-        game,
-        userId: user.id
-      }
-    })
-    return user
-  }
-  public async addCorrectPrediction(game: "valorant" | "lol", predictionId: string) {
-    const user = await this.fetch(this.id) ?? this
-    const pred = await prisma.predictions.findFirst({
-      where: {
-        match: predictionId,
-        game,
-        userId: user.id
-      }
-    })
-    if(!pred) return user
-    user.correct_predictions += 1
-    await prisma.predictions.update({
-      where: {
-        match: predictionId,
-        game,
-        userId: user.id,
-        id: pred.id
-      },
-      data: {
-        status: "correct"
-      }
-    })
-    await user.save()
-    return user
-  }
-  public async addWrongPrediction(game: "valorant" | "lol", predictionId: string) {
-    const user = await this.fetch(this.id) ?? this
-    const pred = await prisma.predictions.findFirst({
-      where: {
-        match: predictionId,
-        game,
-        userId: user.id
-      }
-    })
-    if(!pred) return user
-    user.wrong_predictions += 1
-    await prisma.predictions.update({
-      where: {
-        match: predictionId,
-        game,
-        userId: user.id,
-        id: pred.id
-      },
-      data: {
-        status: "wrong"
-      }
-    })
-    await user.save()
     return user
   }
   public async addPlayerToRoster(player: string, method: "CLAIM_PLAYER_BY_CLAIM_COMMAND" | "CLAIM_PLAYER_BY_COMMAND" = "CLAIM_PLAYER_BY_CLAIM_COMMAND", channel?: string) {
-    const user = await this.fetch(this.id) ?? this
-    user.roster!.reserve.push(player)
-    if(method === "CLAIM_PLAYER_BY_CLAIM_COMMAND") {
-      if(user.plan) {
-        user.claim_time = new Date(Date.now() + 5 * 60 * 1000)
-      }
-      else user.claim_time = new Date(Date.now() + 10 * 60 * 1000)
-      user.fates -= 1
-    }
-    user.pity += 1
-    await prisma.transactions.create({
+    this.reserve_players.push(player)
+    await prisma.transaction.create({
       data: {
         type: method,
-        player,
+        player: Number(player),
         userId: this.id
       }
     })
-    user.claims += 1
-    user.reminded = false
-    if(channel) {
-      user.remindIn = channel
-    }
-    if(calcPlayerOvr(getPlayer(Number(player))!) >= 85) {
-      user.pity = 0
-    }
-    await user.save()
-    return user
-  }
-  public async sellPlayer(id: string, price: bigint, i: number) {
-    const user = await this.fetch(this.id) ?? this
-    user.roster!.reserve.splice(i, 1)
-    user.coins += price
-    await prisma.transactions.create({
-      data: {
-        type: "SELL_PLAYER",
-        player: id,
-        price,
-        userId: this.id
-      }
-    })
-    await user.save()
-    return user
+    await this.save()
+    return this
   }
   public async addPremium(by: "ADD_PREMIUM_BY_COMMAND" | "BUY_PREMIUM") {
-    const keys = await prisma.keys.findMany()
-    let keyId: string
-    do {
-      keyId = ""
-      const pattern = "@@@@-####-@@##-&&&&"
-      const upperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      const lowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
-      const digits = "0123456789"
-      for(const char of pattern) {
-        if(char === "@") {
-          keyId += upperCaseLetters.charAt(Math.floor(Math.random() * upperCaseLetters.length))
-        } 
-        else if(char === "#") {
-          keyId += digits.charAt(Math.floor(Math.random() * digits.length))
-        } 
-        else if(char === "&") {
-          keyId += lowerCaseLetters.charAt(Math.floor(Math.random() * lowerCaseLetters.length))
-        } 
-        else {
-          keyId += char
-        }
-      }
-    }
-    while (keys.some(key => key.id === keyId))
-    let expiresAt = !this.plan ? new Date(Date.now() + 2592000000) : new Date(this.plan.expiresAt.getTime() + 2592000000)
-    await prisma.keys.create({
+    let expiresAt = new Date(Date.now() + 2592000000)
+    const key = await prisma.key.create({
       data: {
-        id: keyId,
         type: "PREMIUM",
         user: this.id,
-        expiresAt
+        expires_at: expiresAt,
+        active_in: [],
+        active: false
       }
     })
-    this.plan = {
-      type: "PREMIUM",
-      expiresAt
-    }
+    const premium = await prisma.premium.findUnique({
+      where: {
+        type: "PREMIUM",
+        userId: this.id
+      }
+    })
+    await prisma.premium.upsert({
+      create: {
+        type: "PREMIUM",
+        expires_at: expiresAt,
+        userId: this.id
+      },
+      update: {
+        expires_at: !premium?.expires_at ? expiresAt : new Date(expiresAt.getTime() + 2592000000)
+      },
+      where: {
+        userId: this.id
+      }
+    })
     this.warned = false
     await this.save()
     const channel = client.getChannel(process.env.USERS_LOG) as TextChannel
@@ -256,47 +153,45 @@ export class SabineUser implements users {
       avatarURL: client.user.avatarURL(),
       embeds: [embed]
     })
-    return keyId
+    return key.id
   }
 }
-export class SabineGuild implements guilds {
+export class SabineGuild implements Guild {
   public id: string
   public lang: $Enums.Language = "en"
-  public valorant_events: { name: string; channel1: string; channel2: string; }[] = []
+  public tbd_matches: TBDMatch[] = []
+  public guildKeyId: string | null = null
+  public events: Event[] = []
+  public live_messages: LiveMessage[] = []
   public valorant_resend_time: Date | null = null
   public valorant_matches: string[] = []
-  public valorant_tbd_matches: { id: string; channel: string; }[] = []
   public valorant_news_channel: string | null = null
-  public valorant_livefeed_channel: string | null = null
-  public valorant_live_matches: ({ currentMap: string | null; score1: string | null; score2: string | null; id: string; url: string | null; stage: string | null; } & { teams: { name: string; score: string; }[]; tournament: { name: string; full_name: string | null; image: string | null; }; })[] = []
-  public lol_events: { name: string; channel1: string; channel2: string; }[] = []
+  public valorant_live_feed_channel: string | null = null
   public lol_resend_time: Date | null = null
   public lol_matches: string[] = []
-  public lol_tbd_matches: { id: string; channel: string; }[] = []
   public lol_news_channel: string | null = null
-  public lol_livefeed_channel: string | null = null
-  public lol_live_matches: ({ currentMap: string | null; score1: string | null; score2: string | null; id: string; url: string | null; stage: string | null; } & { teams: { name: string; score: string; }[]; tournament: { name: string; full_name: string | null; image: string | null; }; })[] = []
-  public key: { type: $Enums.KeyType; expiresAt: Date | null; id: string; } | null = null
-  public tournamentsLength: number = 5
+  public lol_live_feed_channel: string | null = null
+  public tournaments_length: number = 5
   public partner: boolean | null = null
   public invite: string | null = null
+  public spam_live_messages: boolean | null = null
   public constructor(id: string) {
     this.id = id
   }
   public async save() {
-    const data: Partial<guilds> = {}
+    const data: Partial<Guild> = {}
     for(const key in this) {
       if(typeof this[key] === "function" || key === "id") continue
       (data as any)[key] = this[key]
     }
-    return await prisma.guilds.upsert({
+    return await prisma.guild.upsert({
       where: { id: this.id },
       update: data,
-      create: { id: this.id, ...data } as Prisma.guildsCreateInput
+      create: { id: this.id, ...data }
     })
   }
   public static async fetch(id: string) {
-    const data = await prisma.guilds.findUnique({ where: { id } })
+    const data = await prisma.guild.findUnique({ where: { id } })
     if(!data) return data
     const guild = new SabineGuild(data.id)
     return Object.assign(guild, data)

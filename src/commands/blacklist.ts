@@ -21,7 +21,7 @@ export default createCommand({
           })
           if(blacklist) return await ctx.send("This user is already banned.")
           if(!reason) return await ctx.send("Missing argument `[reason]`.")
-          await client.prisma.users.delete({
+          await client.prisma.user.delete({
             where: {
               id: ctx.args[2]
             }
@@ -31,7 +31,7 @@ export default createCommand({
             data: {
               id: ctx.args[2],
               reason,
-              endsAt: time ? new Date(Date.now() + time) : null,
+              ends_at: time ? new Date(Date.now() + time) : null,
               type: "USER"
             }
           })
@@ -47,7 +47,7 @@ export default createCommand({
           })
           if(blacklist) return await ctx.send("This guild is already banned.")
           if(!reason) return await ctx.send("Missing argument `[reason]`.")
-          await client.prisma.guilds.delete({
+          await client.prisma.guild.delete({
             where: {
               id: ctx.args[2]
             }
@@ -57,7 +57,7 @@ export default createCommand({
             data: {
               id: ctx.args[2],
               reason,
-              endsAt: time ? new Date(Date.now() + time) : null,
+              ends_at: time ? new Date(Date.now() + time) : null,
               type: "GUILD",
               name: g?.name
             }
