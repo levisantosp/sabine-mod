@@ -127,7 +127,7 @@ export class SabineUser implements User {
         userId: this.id
       },
       update: {
-        expires_at: !premium?.expires_at ? expiresAt : new Date(expiresAt.getTime() + 2592000000)
+        expires_at: !premium?.expires_at ? expiresAt : new Date(premium.expires_at.getTime() + 2592000000)
       },
       where: {
         userId: this.id
